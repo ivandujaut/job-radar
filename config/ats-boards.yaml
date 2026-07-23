@@ -1,0 +1,25 @@
+# Boards de ATS públicos que el motor escanea para auto-apply legítimo.
+# Un board token = el slug de la empresa en su URL de careers.
+# Greenhouse: boards.greenhouse.io/<token>
+#
+# Estos son ejemplos verificables (boards públicos reales) para probar el motor.
+# En producción, el usuario arma esta lista desde su onboarding.
+
+greenhouse:
+  - token: stripe
+    note: "board grande, util para probar volumen"
+  - token: airbnb
+    note: "ejemplo"
+
+# TODO: lever y ashby adapters. Lever: jobs.lever.co/<token>; Ashby: jobs.ashbyhq.com/<token>
+lever: []
+ashby: []
+
+# Datos del solicitante para el envio (dry-run los muestra, no los manda).
+# El path del CV debe existir localmente para el envio real.
+applicant:
+  firstName: Ivan
+  lastName: Dujaut
+  email: dujautivan@gmail.com
+  phone: ""
+  resumePath: "../ivandujaut/public/cv-ivan-dujaut.pdf"

@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { fetchGuestDescription, searchGuestJobs, sleep } from "./adapters/linkedin-guest.ts";
 import { loadHitsFile, searchPeopleHits } from "./adapters/people-search.ts";
 import { rules, targets } from "./config.ts";
+import { runEngine } from "./engine.ts";
 import { draftNote, triagePeople } from "./people.ts";
 import { rankJob } from "./rank.ts";
 import { findById, loadQueue, log, saveQueue, upsert } from "./store.ts";
@@ -50,6 +51,15 @@ async function main() {
         upsert(item);
         console.log(`  [${item.ranking.score}] ${item.job.title} @ ${item.job.company}`);
       }
+      break;
+    }
+    case "engine": {
+      // engine [userId] [--live] — one background auto-apply pass.
+      // Without --live, applications are dry-run (nothing is sent to companies).
+      const live = args.includes("--live");
+      const userId = args.find((a) => !a.startsWith("--")) ?? "dujautivan";
+      if (live) console.log("MODO LIVE: se enviaran aplicaciones reales.\n");
+      await runEngine(userId, { live });
       break;
     }
     case "people": {
@@ -154,7 +164,7 @@ async function main() {
       break;
     }
     default:
-      console.log("uso: cli.ts <scan|rank|rethreshold|people|queue|approve|reject|edit> [args]");
+      console.log("uso: cli.ts <scan|rank|rethreshold|engine|people|queue|approve|reject|edit> [args]");
   }
 }
 
