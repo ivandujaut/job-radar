@@ -13,8 +13,10 @@ import type { QueueItem } from "@/src/types.ts";
 const MATCH_HINT =
   "Match (0-100): afinidad estimada entre tu perfil y esta vacante. Más alto es mejor encaje.";
 
-function scoreColor(score: number): string {
-  if (score >= 70) return "text-emerald-400";
+// Green marks scores at or above the auto-apply threshold, so "verde =
+// auto-aplicable" stays true even if the threshold changes in settings.
+function scoreColor(score: number, autoApplyThreshold: number): string {
+  if (score >= autoApplyThreshold) return "text-emerald-400";
   if (score >= 55) return "text-amber-400";
   return "text-muted-foreground";
 }
@@ -23,10 +25,12 @@ export function ApplicationCard({
   item,
   readonly,
   showStatus,
+  autoApplyThreshold = 80,
 }: {
   item: QueueItem;
   readonly?: boolean;
   showStatus?: boolean;
+  autoApplyThreshold?: number;
 }) {
   const [open, setOpen] = useState(false);
   const job = item.job;
@@ -58,7 +62,7 @@ export function ApplicationCard({
             <div
               className={cn(
                 "font-mono text-xl font-semibold leading-none tabular-nums",
-                scoreColor(ranking.score),
+                scoreColor(ranking.score, autoApplyThreshold),
               )}
             >
               {ranking.score}

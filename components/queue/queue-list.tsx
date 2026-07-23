@@ -10,15 +10,22 @@ function Row({
   item,
   readonly,
   showStatus,
+  autoApplyThreshold,
 }: {
   item: QueueItem;
   readonly?: boolean;
   showStatus?: boolean;
+  autoApplyThreshold?: number;
 }) {
   return item.kind === "connection" ? (
     <ConnectionCard item={item} readonly={readonly} showStatus={showStatus} />
   ) : (
-    <ApplicationCard item={item} readonly={readonly} showStatus={showStatus} />
+    <ApplicationCard
+      item={item}
+      readonly={readonly}
+      showStatus={showStatus}
+      autoApplyThreshold={autoApplyThreshold}
+    />
   );
 }
 
@@ -31,11 +38,13 @@ export function QueueList({
   items,
   readonly,
   showStatus,
+  autoApplyThreshold,
   pageSize = 6,
 }: {
   items: QueueItem[];
   readonly?: boolean;
   showStatus?: boolean;
+  autoApplyThreshold?: number;
   pageSize?: number;
 }) {
   const [visible, setVisible] = useState(pageSize);
@@ -50,6 +59,7 @@ export function QueueList({
           item={item}
           readonly={readonly ?? item.status !== "pending_review"}
           showStatus={showStatus}
+          autoApplyThreshold={autoApplyThreshold}
         />
       ))}
       {remaining > 0 && (

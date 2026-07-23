@@ -117,8 +117,8 @@ export default async function DashboardPage({
           <h2 className="text-sm font-medium text-foreground">{meta.count(active.length)}</h2>
           {(activeTab === "review" || activeTab === "applications") && active.length > 0 && (
             <p className="text-xs text-muted-foreground">
-              El match va de 0 a 100: qué tan bien encaja tu perfil con la vacante. Verde: encaje
-              fuerte (70+). Ámbar: medio (55+).
+              El match va de 0 a 100: qué tan bien encaja tu perfil con la vacante. Verde:
+              auto-aplicable ({autonomy.autoApplyThreshold}+). Ámbar: encaje medio (55+).
             </p>
           )}
         </div>
@@ -139,6 +139,7 @@ export default async function DashboardPage({
             items={active}
             readonly={activeTab === "history" ? true : undefined}
             showStatus={activeTab !== "review"}
+            autoApplyThreshold={autonomy.autoApplyThreshold}
           />
         )}
       </section>
