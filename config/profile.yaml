@@ -1,0 +1,32 @@
+# Candidate profile used by the ranking and drafting agents.
+# TODO(ivan): revisar y completar. No inflar niveles: los agentes redactan
+# con lo que diga este archivo.
+
+name: Ivan Dujaut
+location: Argentina
+languages:
+  - es: nativo
+  - en: A2 basico  # los drafts en ingles se marcan para revision extra
+
+target_roles:
+  - Product Manager
+  - Associate Product Manager
+  - Product Engineer
+  - Technical Product Manager
+
+background: |
+  Bioingeniero pivoteando a roles de Producto. Experiencia construyendo
+  productos con IA de punta a punta: bot de WhatsApp de venta asesorada de
+  seguros (benchmarkeado contra el bot de La Caja), teardown publicado de
+  productos de interpretacion de analisis clinicos, portfolio tecnico en
+  Next.js. Fortaleza: juicio de producto en bordes y casos limite, evals
+  y protocolos de prueba reproducibles.
+
+evidence:
+  - "Caso de estudio: teardown de interpretes de analisis de laboratorio (6 casos sinteticos, 2 productos)"
+  - "Bot de venta asesorada de seguros por WhatsApp"
+  - "Portfolio: ivandujaut (Next.js)"
+
+tone: |
+  Directo, concreto, sin inflar. Primera persona. Frases cortas.
+  Sin em-dashes. En espanol rioplatense neutro; en ingles simple (A2).

@@ -1,0 +1,29 @@
+# Reglas de filtrado y umbrales del pipeline.
+
+search:
+  keywords:
+    - "product manager"
+    - "associate product manager"
+    - "product engineer"
+  locations:
+    - "Argentina"
+    - "Latin America"
+  remote_ok: true
+  max_age_days: 14
+
+filters:
+  min_match_score: 70        # debajo de esto ni entra a la cola
+  seniority_exclude:
+    - "director"
+    - "vp"
+    - "head of"              # honestidad de seniority: no aplicar a roles C-level
+  language_note: "roles que exijan ingles fluido se rankean pero se marcan con warning"
+
+queue:
+  max_pending: 30            # si la cola crece mas, el scan se pausa
+
+executor:
+  max_actions_per_day: 10
+  max_connections_per_day: 3
+  min_delay_minutes: 12
+  max_delay_minutes: 90

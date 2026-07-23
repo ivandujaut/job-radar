@@ -1,0 +1,22 @@
+# Empresas objetivo: reciben monitoreo activo (vacantes + gente de hiring).
+# Criterio (memoria de trabajo): empleabilidad + visibilidad.
+
+companies:
+  - name: Cromodata
+    url: https://www.cromodata.com/
+    why: "Datos clinicos reales de LATAM; encaje directo con bioingenieria y el teardown de laboratorios"
+    linkedin: https://www.linkedin.com/company/cromodata/
+  - name: Belo
+    url: https://www.belo.app/ar/
+    why: "Fintech argentina para freelancers; audiencia y mercado conocidos"
+    linkedin: https://www.linkedin.com/company/belo-app/
+  - name: Cashea
+    url: https://www.cashea.app/
+    why: "BNPL masivo en Venezuela; producto de consumo a escala"
+    linkedin: https://www.linkedin.com/company/cashea/
+  - name: NotCo
+    url: https://www.notco.ai/
+    why: "Plataforma de IA multi-agente para CPG; vertical AI con dominio profundo"
+    linkedin: https://www.linkedin.com/company/thenotcompany/
+
+# Nota: los slugs de LinkedIn son tentativos; el adapter los valida antes de usarlos.
