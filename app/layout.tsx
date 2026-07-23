@@ -15,7 +15,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const shell = (
     <html lang="es" className={cn("dark", "font-sans", geist.variable)}>
-      <body className="antialiased">{children}</body>
+      {/* Browser extensions (e.g. ColorZilla) inject attributes like
+          cz-shortcut-listen on <body> before React hydrates, causing a
+          hydration mismatch. suppressHydrationWarning silences it for this
+          node only. */}
+      <body className="antialiased" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 
