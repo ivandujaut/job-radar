@@ -37,6 +37,6 @@
     "@vercel/config": "^0.5.5",
     "postcss": "^8.5.22",
     "tailwindcss": "^4.3.3",
-    "typescript": "^7.0.2"
+    "typescript": "^5.7.3"
   }
 }
