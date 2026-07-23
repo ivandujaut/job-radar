@@ -46,8 +46,8 @@ export default async function OnboardingPage({
         ))}
       </ol>
 
-      {current === "profile" && <ProfileStep />}
-      {current === "rules" && <RulesStep />}
+      {current === "profile" && <ProfileStep profile={settings.profile} />}
+      {current === "rules" && <RulesStep profile={settings.profile} />}
       {current === "connect" && <ConnectStep />}
       {current === "autonomy" && <AutonomyStep autonomy={settings.autonomy} />}
     </main>

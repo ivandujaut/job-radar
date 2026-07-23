@@ -38,9 +38,18 @@ export interface EngineRunSummary {
   live: boolean;
 }
 
+/** What the user entered during onboarding (or later in settings). */
+export interface Profile {
+  headline: string; // e.g. "Product Engineer pivoteando a Producto"
+  roles: string; // comma-separated target roles
+  locations: string; // comma-separated
+  englishNote: string; // honest level, mirrored into drafts
+}
+
 export interface UserSettings {
   userId: string;
   email?: string;
+  profile: Profile;
   autonomy: AutonomySettings;
   onboarding: OnboardingState;
   /** Result of the most recent scheduler pass, shown on the dashboard. */
@@ -50,6 +59,7 @@ export interface UserSettings {
 
 export const DEFAULT_SETTINGS = (userId: string): UserSettings => ({
   userId,
+  profile: { headline: "", roles: "", locations: "", englishNote: "" },
   autonomy: {
     autoApplyThreshold: 80,
     autoApplyEnabled: false,
@@ -68,10 +78,16 @@ export const DEFAULT_SETTINGS = (userId: string): UserSettings => ({
 
 const fileFor = (userId: string) => join(process.cwd(), "data", "users", `${userId}.json`);
 
+/** Backfill fields added after a user record was first written. */
+function normalize(s: UserSettings): UserSettings {
+  const d = DEFAULT_SETTINGS(s.userId);
+  return { ...d, ...s, profile: { ...d.profile, ...s.profile }, autonomy: { ...d.autonomy, ...s.autonomy } };
+}
+
 function fileLoadSettings(userId: string): UserSettings {
   const f = fileFor(userId);
   if (!existsSync(f)) return DEFAULT_SETTINGS(userId);
-  return JSON.parse(readFileSync(f, "utf8")) as UserSettings;
+  return normalize(JSON.parse(readFileSync(f, "utf8")) as UserSettings);
 }
 
 function fileSaveSettings(s: UserSettings): void {
@@ -94,7 +110,7 @@ export async function loadSettings(userId: string): Promise<UserSettings> {
     }
     throw new Error(`loadSettings: ${error.message}`);
   }
-  return (data?.settings as UserSettings) ?? DEFAULT_SETTINGS(userId);
+  return data?.settings ? normalize(data.settings as UserSettings) : DEFAULT_SETTINGS(userId);
 }
 
 export async function saveSettings(s: UserSettings): Promise<void> {

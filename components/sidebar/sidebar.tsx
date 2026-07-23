@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   RadarIcon,
   SidebarLeftIcon,
   SidebarRightIcon,
-  Logout01Icon,
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { MENU, OPTIONS, type NavItem } from "./nav-config";
@@ -16,10 +16,12 @@ function Item({
   item,
   active,
   expanded,
+  count,
 }: {
   item: NavItem;
   active: boolean;
   expanded: boolean;
+  count?: number;
 }) {
   return (
     <Link
@@ -34,19 +36,37 @@ function Item({
       )}
     >
       <HugeiconsIcon icon={item.icon} size={20} strokeWidth={1.8} aria-hidden />
-      {expanded && <span>{item.label}</span>}
+      {expanded && <span className="flex-1">{item.label}</span>}
+      {expanded && count ? (
+        <span
+          className={cn(
+            "rounded-full px-1.5 text-xs",
+            active ? "bg-primary-foreground/20" : "bg-muted-foreground/15"
+          )}
+        >
+          {count}
+        </span>
+      ) : null}
     </Link>
   );
 }
 
 export function Sidebar({
-  activeTab,
+  reviewCount,
   onSignOut,
 }: {
-  activeTab: string;
+  reviewCount: number;
   onSignOut: React.ReactNode;
 }) {
   const [expanded, setExpanded] = useState(true);
+  const pathname = usePathname();
+  const tab = useSearchParams().get("tab") ?? "review";
+
+  const isActive = (item: NavItem) => {
+    if (item.href.startsWith("/settings")) return pathname.startsWith("/settings");
+    if (item.href.startsWith("/?tab=")) return pathname === "/" && item.href.endsWith(tab);
+    return false;
+  };
 
   return (
     <aside
@@ -77,7 +97,13 @@ export function Sidebar({
             <p className="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground">Menú</p>
           )}
           {MENU.map((item) => (
-            <Item key={item.key} item={item} active={item.tab === activeTab} expanded={expanded} />
+            <Item
+              key={item.key}
+              item={item}
+              active={isActive(item)}
+              expanded={expanded}
+              count={item.badge === "review" ? reviewCount : undefined}
+            />
           ))}
         </div>
 
@@ -88,7 +114,7 @@ export function Sidebar({
             </p>
           )}
           {OPTIONS.map((item) => (
-            <Item key={item.key} item={item} active={false} expanded={expanded} />
+            <Item key={item.key} item={item} active={isActive(item)} expanded={expanded} />
           ))}
           <div className={cn("mt-1", !expanded && "flex justify-center")}>{onSignOut}</div>
         </div>
@@ -96,5 +122,3 @@ export function Sidebar({
     </aside>
   );
 }
-
-export { Logout01Icon };

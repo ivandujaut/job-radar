@@ -6,3 +6,4 @@ data/
 data/users/
 .next/
 *.tsbuildinfo
+.gstack/

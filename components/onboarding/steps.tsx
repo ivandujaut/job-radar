@@ -8,46 +8,81 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { AutonomySettings } from "@/src/settings.ts";
+import { Textarea } from "@/components/ui/textarea";
+import type { AutonomySettings, Profile } from "@/src/settings.ts";
 
-export function ProfileStep() {
+export function ProfileStep({ profile }: { profile: Profile }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>1. Tu perfil</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Los agentes rankean cada vacante contra tu CV. Confirmá que tu perfil está cargado; se
-          usa tal cual, sin inflar.
+          Los agentes rankean cada vacante contra esto. Se usa tal cual, sin inflar.
         </p>
       </CardHeader>
       <CardContent>
-        <form action={completeProfileStep}>
-          <p className="mb-4 text-sm text-muted-foreground">
-            Perfil actual: Product Engineer, 4+ años, bioingeniero (ITBA). Inglés A2.
-          </p>
-          <Button type="submit">Confirmar y seguir</Button>
+        <form action={completeProfileStep} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="headline">Titular profesional</Label>
+            <Textarea
+              id="headline"
+              name="headline"
+              rows={3}
+              required
+              defaultValue={profile.headline}
+              placeholder="Product Engineer con 4+ años, bioingeniero (ITBA), pivoteando a Producto."
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="englishNote">Nivel de inglés (honesto)</Label>
+            <Input
+              id="englishNote"
+              name="englishNote"
+              defaultValue={profile.englishNote}
+              placeholder="A2 básico, lectura técnica fluida"
+            />
+            <p className="text-xs text-muted-foreground">
+              Se refleja en los drafts. No inflar ayuda a no quemar oportunidades.
+            </p>
+          </div>
+          <Button type="submit">Guardar y seguir</Button>
         </form>
       </CardContent>
     </Card>
   );
 }
 
-export function RulesStep() {
+export function RulesStep({ profile }: { profile: Profile }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>2. Qué buscás</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Roles, ubicación y filtros. Definen qué vacantes entran al radar.
+          Roles y ubicación. Definen qué vacantes entran al radar.
         </p>
       </CardHeader>
       <CardContent>
-        <form action={completeRulesStep} className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Reglas actuales: Product Manager / Product Engineer, Argentina + LATAM remoto, sin roles
-            director/VP/head.
-          </p>
-          <Button type="submit">Confirmar y seguir</Button>
+        <form action={completeRulesStep} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="roles">Roles objetivo (separados por coma)</Label>
+            <Input
+              id="roles"
+              name="roles"
+              required
+              defaultValue={profile.roles}
+              placeholder="Product Manager, Associate Product Manager, Product Engineer"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="locations">Ubicaciones (separadas por coma)</Label>
+            <Input
+              id="locations"
+              name="locations"
+              defaultValue={profile.locations}
+              placeholder="Argentina, LATAM remoto"
+            />
+          </div>
+          <Button type="submit">Guardar y seguir</Button>
         </form>
       </CardContent>
     </Card>

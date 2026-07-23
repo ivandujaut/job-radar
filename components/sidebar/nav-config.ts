@@ -17,15 +17,15 @@ export interface NavItem {
   label: string;
   href: string;
   icon: typeof DashboardSquare01Icon;
-  /** Which dashboard tab this maps to (query param), when applicable. */
-  tab?: string;
+  /** For counting badges: which queue metric to show, if any. */
+  badge?: "review";
 }
 
 export const MENU: NavItem[] = [
-  { key: "review", label: "Revisión", href: "/?tab=review", icon: DashboardSquare01Icon, tab: "review" },
-  { key: "applications", label: "Aplicaciones", href: "/?tab=applications", icon: JobSearchIcon, tab: "applications" },
-  { key: "connections", label: "Conexiones", href: "/?tab=connections", icon: UserGroupIcon, tab: "connections" },
-  { key: "history", label: "Historial", href: "/?tab=history", icon: Time04Icon, tab: "history" },
+  { key: "review", label: "Revisión", href: "/?tab=review", icon: DashboardSquare01Icon, badge: "review" },
+  { key: "applications", label: "Aplicaciones", href: "/?tab=applications", icon: JobSearchIcon },
+  { key: "connections", label: "Conexiones", href: "/?tab=connections", icon: UserGroupIcon },
+  { key: "history", label: "Historial", href: "/?tab=history", icon: Time04Icon },
 ];
 
 export const OPTIONS: NavItem[] = [

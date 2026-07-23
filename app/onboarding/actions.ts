@@ -14,8 +14,8 @@ async function requireUser() {
 export async function completeProfileStep(formData: FormData) {
   const session = await requireUser();
   const settings = await loadSettings(session.userId);
-  // The CV/rules content still lives in config/*.yaml for now; this step just
-  // records that the user confirmed their profile during onboarding.
+  settings.profile.headline = String(formData.get("headline") ?? "").trim();
+  settings.profile.englishNote = String(formData.get("englishNote") ?? "").trim();
   settings.onboarding.profileComplete = true;
   settings.email = session.email;
   await saveSettings(settings);
@@ -25,6 +25,8 @@ export async function completeProfileStep(formData: FormData) {
 export async function completeRulesStep(formData: FormData) {
   const session = await requireUser();
   const settings = await loadSettings(session.userId);
+  settings.profile.roles = String(formData.get("roles") ?? "").trim();
+  settings.profile.locations = String(formData.get("locations") ?? "").trim();
   settings.onboarding.rulesComplete = true;
   await saveSettings(settings);
   redirect("/onboarding?step=connect");
