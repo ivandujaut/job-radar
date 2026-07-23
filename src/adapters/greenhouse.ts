@@ -44,15 +44,16 @@ export async function fetchGreenhouseJobs(boardToken: string): Promise<Job[]> {
   }));
 }
 
-/** Greenhouse job content arrives HTML-encoded; decode entities and strip tags. */
+/** Greenhouse job content arrives HTML-entity-encoded; decode entities FIRST,
+ * then strip the tags they expand into. */
 function decodeHtml(s: string): string {
   return s
-    .replace(/<[^>]+>/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
     .replace(/&nbsp;/g, " ")
+    .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
