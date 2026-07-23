@@ -1,8 +1,13 @@
+import { redirect } from "next/navigation";
+import { logoutAction } from "@/app/auth-actions";
 import { ApplicationCard } from "@/components/queue/application-card";
 import { ConnectionCard } from "@/components/queue/connection-card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getSession } from "@/src/auth.ts";
+import { loadSettings, onboardingComplete } from "@/src/settings.ts";
 import { loadQueue } from "@/src/store.ts";
 import type { QueueItem, QueueStatus } from "@/src/types.ts";
 
@@ -46,7 +51,13 @@ function ItemCard({ item, readonly }: { item: QueueItem; readonly?: boolean }) {
   );
 }
 
-export default function Page() {
+export default async function Page() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  const settings = loadSettings(session.userId);
+  if (!onboardingComplete(settings)) redirect("/onboarding");
+  const { autonomy } = settings;
+
   const items = loadQueue();
   const byStatus = (s: QueueStatus) => items.filter((i) => i.status === s);
   const review = byStatus("pending_review");
@@ -60,11 +71,20 @@ export default function Page() {
 
   return (
     <main className="mx-auto max-w-4xl space-y-8 p-6 md:p-10">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">job-radar</h1>
-        <p className="text-sm text-muted-foreground">
-          Los agentes buscan y redactan. Nada se envía sin tu aprobación.
-        </p>
+      <header className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">job-radar</h1>
+          <p className="text-sm text-muted-foreground">
+            {autonomy.autoApplyEnabled
+              ? `Auto-apply activo en ATS con match ≥ ${autonomy.autoApplyThreshold}. Las notas de conexión siempre pasan por vos.`
+              : "Auto-apply en pausa. Todo espera tu revisión."}
+          </p>
+        </div>
+        <form action={logoutAction}>
+          <Button variant="ghost" size="sm" type="submit">
+            Salir
+          </Button>
+        </form>
       </header>
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">

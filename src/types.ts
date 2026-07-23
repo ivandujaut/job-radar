@@ -1,6 +1,11 @@
+export type JobSource = "linkedin-guest" | "linkedin-session" | "greenhouse" | "lever" | "ashby" | "manual";
+
+/** Sources we can auto-apply to server-side without touching a LinkedIn account. */
+export const AUTO_APPLY_SOURCES: JobSource[] = ["greenhouse", "lever", "ashby"];
+
 export interface Job {
   id: string;
-  source: "linkedin-guest" | "linkedin-session" | "manual";
+  source: JobSource;
   url: string;
   title: string;
   company: string;
@@ -8,6 +13,9 @@ export interface Job {
   postedAt?: string;
   description?: string;
   discoveredAt: string;
+  /** ATS-native id, needed to submit an application (Greenhouse/Lever/Ashby). */
+  externalId?: string;
+  boardToken?: string;
 }
 
 export interface Ranking {
