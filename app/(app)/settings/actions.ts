@@ -9,7 +9,7 @@ const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n
 
 export async function updateAutonomy(formData: FormData) {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect("/sign-in");
   const settings = await loadSettings(session.userId);
 
   const threshold = Number(formData.get("threshold"));
@@ -29,7 +29,7 @@ export async function updateAutonomy(formData: FormData) {
 /** Quick pause/resume used from the dashboard header. */
 export async function toggleAutoApply() {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect("/sign-in");
   const settings = await loadSettings(session.userId);
   settings.autonomy.autoApplyEnabled = !settings.autonomy.autoApplyEnabled;
   await saveSettings(settings);

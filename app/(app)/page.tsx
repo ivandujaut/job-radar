@@ -68,7 +68,7 @@ export default async function DashboardPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect("/sign-in");
   const settings = await loadSettings(session.userId);
   const { autonomy } = settings;
 

@@ -7,7 +7,7 @@ import { loadSettings, saveSettings } from "@/src/settings.ts";
 
 async function requireUser() {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect("/sign-in");
   return session;
 }
 
