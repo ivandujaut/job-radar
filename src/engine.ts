@@ -4,7 +4,8 @@ import { parse } from "yaml";
 import { fetchGreenhouseJobs } from "./adapters/greenhouse.ts";
 import { submitGreenhouseApplication, type Applicant } from "./apply/greenhouse.ts";
 import { rankJob } from "./rank.ts";
-import { loadSettings } from "./settings.ts";
+import { loadSettings, saveSettings } from "./settings.ts";
+import { listUserIds } from "./users.ts";
 import { loadQueue, log, upsert } from "./store.ts";
 import { AUTO_APPLY_SOURCES, type Job, type QueueItem } from "./types.ts";
 
@@ -156,5 +157,32 @@ export async function runEngine(
   say(
     `resumen: ${out.autoApplied} auto-apply${live ? "" : " (dry-run)"}, ${out.queued} a revision, ${out.discarded} descartadas, ${out.skippedByCap} frenadas por tope`
   );
+
+  // Record the run on the user's settings for the dashboard.
+  settings.lastRun = {
+    at: new Date().toISOString(),
+    autoApplied: out.autoApplied,
+    queued: out.queued,
+    discarded: out.discarded,
+    live,
+  };
+  saveSettings(settings);
   return out;
+}
+
+/**
+ * Scheduler entrypoint: run one engine pass for every user who has auto-apply
+ * enabled. Users with it off are skipped (their queue only fills on demand).
+ */
+export async function runScheduledPass(opts: { live?: boolean; maxPerRun?: number } = {}) {
+  const results: Record<string, EngineRunResult | "skipped"> = {};
+  for (const userId of listUserIds()) {
+    const settings = loadSettings(userId);
+    if (!settings.autonomy.autoApplyEnabled) {
+      results[userId] = "skipped";
+      continue;
+    }
+    results[userId] = await runEngine(userId, opts);
+  }
+  return results;
 }

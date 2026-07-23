@@ -27,11 +27,21 @@ export interface OnboardingState {
   autonomySet: boolean;
 }
 
+export interface EngineRunSummary {
+  at: string;
+  autoApplied: number;
+  queued: number;
+  discarded: number;
+  live: boolean;
+}
+
 export interface UserSettings {
   userId: string;
   email?: string;
   autonomy: AutonomySettings;
   onboarding: OnboardingState;
+  /** Result of the most recent scheduler pass, shown on the dashboard. */
+  lastRun?: EngineRunSummary;
   updatedAt: string;
 }
 

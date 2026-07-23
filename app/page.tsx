@@ -87,6 +87,16 @@ export default async function Page() {
         </form>
       </header>
 
+      {settings.lastRun && (
+        <p className="text-xs text-muted-foreground">
+          Última corrida del motor:{" "}
+          {new Date(settings.lastRun.at).toLocaleString("es-AR")} ·{" "}
+          {settings.lastRun.autoApplied} aplicadas
+          {settings.lastRun.live ? "" : " (dry-run)"}, {settings.lastRun.queued} a revisión,{" "}
+          {settings.lastRun.discarded} descartadas
+        </p>
+      )}
+
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard label="En revisión" value={review.length} />
         <StatCard label="Aprobados" value={byStatus("approved").length} />
