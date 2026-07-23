@@ -1,10 +1,13 @@
 import { cookies } from "next/headers";
 
 /**
- * Minimal cookie session. This is a deliberate placeholder for a real provider
- * (NextAuth + Google) so the onboarding and dashboard flows can be built and
- * tested now. Swap `getSession`/`signIn` for NextAuth without touching callers:
- * they only depend on { userId, email }.
+ * Auth in two modes:
+ *  - Clerk mode (when CLERK keys are set): real auth via @clerk/nextjs.
+ *  - Cookie mode (fallback): a minimal cookie session so the app runs in dev
+ *    before Clerk keys are provisioned.
+ *
+ * Callers only depend on getSession() -> { userId, email }. When you paste the
+ * Clerk keys into .env, everything switches over with no code changes.
  */
 const COOKIE = "jr_session";
 
@@ -13,7 +16,23 @@ export interface Session {
   email: string;
 }
 
+export function clerkEnabled(): boolean {
+  return Boolean(process.env.CLERK_SECRET_KEY && process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+}
+
 export async function getSession(): Promise<Session | null> {
+  if (clerkEnabled()) {
+    const { auth, currentUser } = await import("@clerk/nextjs/server");
+    const { userId } = await auth();
+    if (!userId) return null;
+    const user = await currentUser();
+    const email =
+      user?.primaryEmailAddress?.emailAddress ??
+      user?.emailAddresses?.[0]?.emailAddress ??
+      "";
+    return { userId, email };
+  }
+
   const store = await cookies();
   const raw = store.get(COOKIE)?.value;
   if (!raw) return null;
@@ -24,9 +43,10 @@ export async function getSession(): Promise<Session | null> {
   }
 }
 
+// --- Cookie-mode only helpers (no-ops under Clerk, which owns sign in/out) ---
+
 export async function signIn(email: string): Promise<Session> {
   const session: Session = {
-    // Deterministic id from email until real auth: keeps one user file stable.
     userId: email.split("@")[0].replace(/[^a-z0-9]/gi, "").toLowerCase() || "me",
     email,
   };

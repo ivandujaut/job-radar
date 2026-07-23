@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { loginAction } from "@/app/auth-actions";
+import { clerkEnabled } from "@/src/auth.ts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +12,9 @@ export default function LoginPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  // When Clerk is configured, it owns the sign-in UI.
+  if (clerkEnabled()) redirect("/sign-in");
+
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
       <Card className="w-full max-w-sm">

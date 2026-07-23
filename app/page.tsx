@@ -2,12 +2,13 @@ import { redirect } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Logout01Icon } from "@hugeicons/core-free-icons";
 import { logoutAction } from "@/app/auth-actions";
+import { ClerkSignOut } from "@/components/auth/clerk-sign-out";
 import { ApplicationCard } from "@/components/queue/application-card";
 import { ConnectionCard } from "@/components/queue/connection-card";
 import { Sidebar } from "@/components/sidebar/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getSession } from "@/src/auth.ts";
+import { clerkEnabled, getSession } from "@/src/auth.ts";
 import { loadSettings, onboardingComplete } from "@/src/settings.ts";
 import { loadQueue } from "@/src/store.ts";
 import type { QueueItem, QueueStatus } from "@/src/types.ts";
@@ -102,7 +103,7 @@ export default async function Page({
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar activeTab={activeTab} onSignOut={<SignOutButton />} />
+      <Sidebar activeTab={activeTab} onSignOut={clerkEnabled() ? <ClerkSignOut /> : <SignOutButton />} />
 
       <main className="mx-auto w-full max-w-4xl space-y-8 p-6 md:p-10">
         <header className="space-y-1">
