@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect("/sign-in");
   const settings = await loadSettings(session.userId);
   const { autonomy } = settings;
 

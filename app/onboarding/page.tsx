@@ -19,7 +19,7 @@ export default async function OnboardingPage({
   searchParams: Promise<{ step?: string }>;
 }) {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect("/sign-in");
   const settings = await loadSettings(session.userId);
   const { step } = await searchParams;
   const current: Step = STEPS.includes(step as Step) ? (step as Step) : "profile";

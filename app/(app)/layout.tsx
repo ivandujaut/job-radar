@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { ClerkSignOut } from "@/components/auth/clerk-sign-out";
-import { CookieSignOut } from "@/components/auth/cookie-sign-out";
 import { Sidebar } from "@/components/sidebar/sidebar";
-import { clerkEnabled, getSession } from "@/src/auth.ts";
+import { getSession } from "@/src/auth.ts";
 import { loadSettings, onboardingComplete } from "@/src/settings.ts";
 import { loadQueue } from "@/src/store.ts";
 
@@ -10,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect("/sign-in");
   const settings = await loadSettings(session.userId);
   if (!onboardingComplete(settings)) redirect("/onboarding");
 
@@ -19,7 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar reviewCount={reviewCount} onSignOut={clerkEnabled() ? <ClerkSignOut /> : <CookieSignOut />} />
+      <Sidebar reviewCount={reviewCount} onSignOut={<ClerkSignOut />} />
       {children}
     </div>
   );

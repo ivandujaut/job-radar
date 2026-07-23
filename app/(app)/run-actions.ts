@@ -12,7 +12,7 @@ import { runEngine } from "@/src/engine.ts";
  */
 export async function runEngineNow() {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect("/sign-in");
   await runEngine(session.userId, { live: false });
   revalidatePath("/");
 }
