@@ -47,6 +47,23 @@ async function main() {
       }
       break;
     }
+    case "rethreshold": {
+      // Re-apply min_match_score to already-ranked items (both directions).
+      const r = rules();
+      const min = r.filters.min_match_score;
+      let moved = 0;
+      for (const item of loadQueue()) {
+        if (!item.ranking) continue;
+        const target = item.ranking.score >= min ? "pending_review" : "discarded";
+        if ((item.status === "discarded" || item.status === "pending_review") && item.status !== target) {
+          item.status = target;
+          upsert(log(item, `rethreshold(${min}) -> ${target}`));
+          moved++;
+        }
+      }
+      console.log(`umbral ${min}: ${moved} items movidos`);
+      break;
+    }
     case "queue": {
       const items = loadQueue().filter((i) => i.status === "pending_review");
       if (!items.length) {
