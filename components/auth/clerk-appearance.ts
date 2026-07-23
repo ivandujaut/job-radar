@@ -20,6 +20,8 @@ export const clerkAppearance = {
     cardBox: "w-full shadow-none",
     card: "bg-transparent shadow-none border-0 p-0 w-full",
     header: "hidden",
+    headerTitle: "hidden",
+    headerSubtitle: "hidden",
     footer: "bg-transparent",
     footerAction: "text-muted-foreground",
     socialButtonsBlockButton: "border-border bg-transparent hover:bg-muted",
