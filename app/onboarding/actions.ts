@@ -13,20 +13,20 @@ async function requireUser() {
 
 export async function completeProfileStep(formData: FormData) {
   const session = await requireUser();
-  const settings = loadSettings(session.userId);
+  const settings = await loadSettings(session.userId);
   // The CV/rules content still lives in config/*.yaml for now; this step just
   // records that the user confirmed their profile during onboarding.
   settings.onboarding.profileComplete = true;
   settings.email = session.email;
-  saveSettings(settings);
+  await saveSettings(settings);
   redirect("/onboarding?step=rules");
 }
 
 export async function completeRulesStep(formData: FormData) {
   const session = await requireUser();
-  const settings = loadSettings(session.userId);
+  const settings = await loadSettings(session.userId);
   settings.onboarding.rulesComplete = true;
-  saveSettings(settings);
+  await saveSettings(settings);
   redirect("/onboarding?step=connect");
 }
 
@@ -37,7 +37,7 @@ export async function skipConnectStep() {
 
 export async function completeAutonomyStep(formData: FormData) {
   const session = await requireUser();
-  const settings = loadSettings(session.userId);
+  const settings = await loadSettings(session.userId);
   const threshold = Number(formData.get("threshold"));
   const enabled = formData.get("autoApplyEnabled") === "on";
   const maxPerDay = Number(formData.get("maxPerDay"));
@@ -46,7 +46,7 @@ export async function completeAutonomyStep(formData: FormData) {
   settings.autonomy.autoApplyEnabled = enabled;
   if (!Number.isNaN(maxPerDay)) settings.autonomy.maxAutoAppliesPerDay = clamp(maxPerDay, 1, 50);
   settings.onboarding.autonomySet = true;
-  saveSettings(settings);
+  await saveSettings(settings);
   revalidatePath("/");
   redirect("/");
 }

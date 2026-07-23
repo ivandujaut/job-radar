@@ -5,3 +5,4 @@ data/
 .vscode.next/
 data/users/
 .next/
+*.tsbuildinfo

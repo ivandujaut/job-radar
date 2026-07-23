@@ -1,5 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { dbEnabled, getDb } from "./db.ts";
+
+const TABLE = "user_settings";
 
 /**
  * Per-user product settings, written by the onboarding flow. This is the
@@ -65,17 +68,33 @@ export const DEFAULT_SETTINGS = (userId: string): UserSettings => ({
 
 const fileFor = (userId: string) => join(process.cwd(), "data", "users", `${userId}.json`);
 
-export function loadSettings(userId: string): UserSettings {
-  const f = fileFor(userId);
-  if (!existsSync(f)) return DEFAULT_SETTINGS(userId);
-  return JSON.parse(readFileSync(f, "utf8")) as UserSettings;
+export async function loadSettings(userId: string): Promise<UserSettings> {
+  if (!dbEnabled()) {
+    const f = fileFor(userId);
+    if (!existsSync(f)) return DEFAULT_SETTINGS(userId);
+    return JSON.parse(readFileSync(f, "utf8")) as UserSettings;
+  }
+  const { data, error } = await getDb()
+    .from(TABLE)
+    .select("settings")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(`loadSettings: ${error.message}`);
+  return (data?.settings as UserSettings) ?? DEFAULT_SETTINGS(userId);
 }
 
-export function saveSettings(s: UserSettings): void {
-  const f = fileFor(s.userId);
-  mkdirSync(dirname(f), { recursive: true });
+export async function saveSettings(s: UserSettings): Promise<void> {
   s.updatedAt = new Date().toISOString();
-  writeFileSync(f, JSON.stringify(s, null, 2));
+  if (!dbEnabled()) {
+    const f = fileFor(s.userId);
+    mkdirSync(dirname(f), { recursive: true });
+    writeFileSync(f, JSON.stringify(s, null, 2));
+    return;
+  }
+  const { error } = await getDb()
+    .from(TABLE)
+    .upsert({ user_id: s.userId, settings: s });
+  if (error) throw new Error(`saveSettings: ${error.message}`);
 }
 
 export function onboardingComplete(s: UserSettings): boolean {

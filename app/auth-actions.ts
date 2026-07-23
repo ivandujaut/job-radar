@@ -8,9 +8,9 @@ export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   if (!email || !email.includes("@")) redirect("/login?error=email");
   await signIn(email);
-  const settings = loadSettings(emailToUserId(email));
-  // Persist the user file on first login so later steps have a baseline.
-  saveSettings(settings);
+  const settings = await loadSettings(emailToUserId(email));
+  // Persist the user record on first login so later steps have a baseline.
+  await saveSettings(settings);
   redirect(onboardingComplete(settings) ? "/" : "/onboarding");
 }
 

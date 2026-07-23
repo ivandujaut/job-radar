@@ -57,7 +57,7 @@ export async function runEngine(
 ): Promise<EngineRunResult> {
   const live = opts.live ?? false;
   const maxPerRun = opts.maxPerRun ?? 12;
-  const settings = loadSettings(userId);
+  const settings = await loadSettings(userId);
   const { autonomy } = settings;
   const cfg = atsConfig();
   const out: EngineRunResult = {
@@ -96,7 +96,7 @@ export async function runEngine(
     const t = title.toLowerCase();
     return keywords.some((k) => t.includes(k)) || t.includes("product");
   };
-  const existing = new Set(loadQueue().map((i) => i.id));
+  const existing = new Set((await loadQueue()).map((i) => i.id));
   const allFresh = jobs.filter((j) => !existing.has(j.id) && matchesRole(j.title));
   const fresh = allFresh.slice(0, maxPerRun);
   say(`${allFresh.length} vacantes nuevas y relevantes tras filtro de rol + dedup`);
@@ -104,7 +104,7 @@ export async function runEngine(
     say(`limite de ${maxPerRun} por corrida: ${allFresh.length - fresh.length} quedan para la proxima`);
   }
 
-  let appliedThisRun = autoAppliesToday(loadQueue());
+  let appliedThisRun = autoAppliesToday(await loadQueue());
   const capRemaining = () => Math.max(0, autonomy.maxAutoAppliesPerDay - appliedThisRun);
 
   for (const job of fresh) {
@@ -122,7 +122,7 @@ export async function runEngine(
       item.status = "pending_review";
       log(item, `auto-apply salteado: tope diario (${autonomy.maxAutoAppliesPerDay}) alcanzado -> pending_review`);
       out.skippedByCap++;
-      upsert(item);
+      await upsert(item);
       say(`  [${ranking.score}] ${job.title} @ ${job.company}: tope alcanzado, a revision`);
       continue;
     }
@@ -151,7 +151,7 @@ export async function runEngine(
       log(item, `${ranking.score} < ${autonomy.reviewFloor} -> discarded`);
       out.discarded++;
     }
-    upsert(item);
+    await upsert(item);
   }
 
   say(
@@ -166,7 +166,7 @@ export async function runEngine(
     discarded: out.discarded,
     live,
   };
-  saveSettings(settings);
+  await saveSettings(settings);
   return out;
 }
 
@@ -176,8 +176,8 @@ export async function runEngine(
  */
 export async function runScheduledPass(opts: { live?: boolean; maxPerRun?: number } = {}) {
   const results: Record<string, EngineRunResult | "skipped"> = {};
-  for (const userId of listUserIds()) {
-    const settings = loadSettings(userId);
+  for (const userId of await listUserIds()) {
+    const settings = await loadSettings(userId);
     if (!settings.autonomy.autoApplyEnabled) {
       results[userId] = "skipped";
       continue;

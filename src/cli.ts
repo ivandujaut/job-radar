@@ -19,14 +19,14 @@ async function main() {
       const location = locFlag >= 0 ? args[locFlag + 1] : r.search.locations[0];
       console.log(`scan: "${keywords}" en ${location}`);
       const jobs = await searchGuestJobs(keywords, location);
-      const existing = new Set(loadQueue().map((i) => i.id));
+      const existing = new Set((await loadQueue()).map((i) => i.id));
       let added = 0;
       for (const job of jobs) {
         if (existing.has(job.id)) continue;
         await sleep(2000 + Math.random() * 3000); // polite pacing between detail fetches
         job.description = await fetchGuestDescription(job.url);
         const item: QueueItem = { id: job.id, kind: "application", status: "pending_rank", job, history: [] };
-        upsert(log(item, `discovered via ${job.source}${job.description ? " (with description)" : " (title only)"}`));
+        await upsert(log(item, `discovered via ${job.source}${job.description ? " (with description)" : " (title only)"}`));
         added++;
       }
       console.log(`${jobs.length} vacantes encontradas, ${added} nuevas en cola (pending_rank)`);
@@ -36,7 +36,7 @@ async function main() {
       const r = rules();
       const all = args.includes("--all"); // re-rank discarded and pending_review too (e.g. after a profile update)
       const statuses = all ? ["pending_rank", "discarded", "pending_review"] : ["pending_rank"];
-      const pending = loadQueue().filter((i) => statuses.includes(i.status));
+      const pending = (await loadQueue()).filter((i) => statuses.includes(i.status));
       console.log(`rankeando ${pending.length} vacantes...`);
       for (const item of pending) {
         if (!item.job) continue;
@@ -48,7 +48,7 @@ async function main() {
           item.status = "discarded";
           log(item, `ranked ${item.ranking.score} < ${r.filters.min_match_score} -> discarded`);
         }
-        upsert(item);
+        await upsert(item);
         console.log(`  [${item.ranking.score}] ${item.job.title} @ ${item.job.company}`);
       }
       break;
@@ -74,7 +74,7 @@ async function main() {
         : all;
       if (!companies.length) throw new Error(`empresa no encontrada en targets.yaml: ${companyArg}`);
 
-      const existing = new Set(loadQueue().map((i) => i.id));
+      const existing = new Set((await loadQueue()).map((i) => i.id));
       for (const c of companies) {
         console.log(`\n${c.name}:`);
         const hits = hitsFile ? loadHitsFile(hitsFile) : await searchPeopleHits(c.name);
@@ -99,7 +99,7 @@ async function main() {
             draft,
             history: [],
           };
-          upsert(log(item, `discovered (${p.relevance}) hook: ${p.hook}`));
+          await upsert(log(item, `discovered (${p.relevance}) hook: ${p.hook}`));
           console.log(`  + ${p.name} (${p.role}) -> nota en cola`);
         }
         if (!hitsFile) await sleep(1500);
@@ -111,12 +111,12 @@ async function main() {
       const r = rules();
       const min = r.filters.min_match_score;
       let moved = 0;
-      for (const item of loadQueue()) {
+      for (const item of await loadQueue()) {
         if (!item.ranking) continue;
         const target = item.ranking.score >= min ? "pending_review" : "discarded";
         if ((item.status === "discarded" || item.status === "pending_review") && item.status !== target) {
           item.status = target;
-          upsert(log(item, `rethreshold(${min}) -> ${target}`));
+          await upsert(log(item, `rethreshold(${min}) -> ${target}`));
           moved++;
         }
       }
@@ -124,7 +124,7 @@ async function main() {
       break;
     }
     case "queue": {
-      const items = loadQueue().filter((i) => i.status === "pending_review");
+      const items = (await loadQueue()).filter((i) => i.status === "pending_review");
       if (!items.length) {
         console.log("cola vacia");
         break;
@@ -148,18 +148,18 @@ async function main() {
     }
     case "approve":
     case "reject": {
-      const item = findById(args[0] ?? "");
+      const item = await findById(args[0] ?? "");
       if (!item) throw new Error(`no encontrado: ${args[0]}`);
       item.status = cmd === "approve" ? "approved" : "rejected";
-      upsert(log(item, cmd));
+      await upsert(log(item, cmd));
       console.log(`${item.id} -> ${item.status}`);
       break;
     }
     case "edit": {
-      const item = findById(args[0] ?? "");
+      const item = await findById(args[0] ?? "");
       if (!item) throw new Error(`no encontrado: ${args[0]}`);
       item.draft = args.slice(1).join(" ");
-      upsert(log(item, "draft edited"));
+      await upsert(log(item, "draft edited"));
       console.log(`${item.id} draft actualizado`);
       break;
     }

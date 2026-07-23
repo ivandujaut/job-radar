@@ -20,7 +20,7 @@ export default async function OnboardingPage({
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
-  const settings = loadSettings(session.userId);
+  const settings = await loadSettings(session.userId);
   const { step } = await searchParams;
   const current: Step = STEPS.includes(step as Step) ? (step as Step) : "profile";
 

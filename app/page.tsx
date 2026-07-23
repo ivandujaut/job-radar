@@ -85,14 +85,14 @@ export default async function Page({
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
-  const settings = loadSettings(session.userId);
+  const settings = await loadSettings(session.userId);
   if (!onboardingComplete(settings)) redirect("/onboarding");
   const { autonomy } = settings;
 
   const { tab } = await searchParams;
   const activeTab: Tab = TABS.includes(tab as Tab) ? (tab as Tab) : "review";
 
-  const items = loadQueue();
+  const items = await loadQueue();
   const byStatus = (s: QueueStatus) => items.filter((i) => i.status === s);
   const review = byStatus("pending_review");
   const applications = items
