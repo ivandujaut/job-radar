@@ -10,6 +10,7 @@ import {
   SidebarRightIcon,
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { MENU, OPTIONS, type NavItem } from "./nav-config";
 
 function Item({
@@ -63,8 +64,9 @@ export function Sidebar({
   const tab = useSearchParams().get("tab") ?? "review";
 
   const isActive = (item: NavItem) => {
+    if (item.href === "/") return pathname === "/";
     if (item.href.startsWith("/settings")) return pathname.startsWith("/settings");
-    if (item.href.startsWith("/?tab=")) return pathname === "/" && item.href.endsWith(tab);
+    if (item.href.startsWith("/review")) return pathname === "/review" && item.href.endsWith(tab);
     return false;
   };
 
@@ -116,6 +118,7 @@ export function Sidebar({
           {OPTIONS.map((item) => (
             <Item key={item.key} item={item} active={isActive(item)} expanded={expanded} />
           ))}
+          <ThemeToggle expanded={expanded} />
           <div className={cn("mt-1", !expanded && "flex justify-center")}>{onSignOut}</div>
         </div>
       </nav>

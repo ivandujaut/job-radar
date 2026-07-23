@@ -17,14 +17,14 @@ export async function approveItem(id: string, formData?: FormData) {
   }
   item.status = "approved";
   await upsert(log(item, "approved via dashboard"));
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 }
 
 export async function rejectItem(id: string) {
   const item = await requireItem(id);
   item.status = "rejected";
   await upsert(log(item, "rejected via dashboard"));
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 }
 
 export async function saveDraft(id: string, formData: FormData) {
@@ -33,5 +33,5 @@ export async function saveDraft(id: string, formData: FormData) {
   if (typeof draft !== "string") return;
   item.draft = draft.trim();
   await upsert(log(item, "draft edited via dashboard"));
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 }

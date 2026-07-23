@@ -54,6 +54,16 @@ export async function saveQueue(items: QueueItem[]): Promise<void> {
   }
 }
 
+/** Remove every queue item. Used by the demo seed for a clean slate. */
+export async function clearQueue(): Promise<void> {
+  if (!dbEnabled()) return fileSave([]);
+  const { error } = await getDb().from(TABLE).delete().neq("id", "");
+  if (error) {
+    if (fileFallback(error, () => fileSave([])) !== undefined) return;
+    throw new Error(`clearQueue: ${error.message}`);
+  }
+}
+
 export async function upsert(item: QueueItem): Promise<void> {
   const fileUpsert = () => {
     const items = fileLoad();

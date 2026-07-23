@@ -1,15 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Card } from "@/components/ui/card";
+import { TONE_SOFT } from "@/components/dashboard/tones";
 import { cn } from "@/lib/utils";
-
-type Accent = "blue" | "green" | "violet" | "zinc";
-
-const ACCENTS: Record<Accent, string> = {
-  blue: "bg-blue-500/10 text-blue-400",
-  green: "bg-emerald-500/10 text-emerald-400",
-  violet: "bg-violet-500/10 text-violet-400",
-  zinc: "bg-zinc-500/10 text-zinc-300",
-};
+import type { Tone } from "@/src/metrics.ts";
 
 export function StatCard({
   label,
@@ -19,16 +12,16 @@ export function StatCard({
   hint,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   icon: React.ComponentProps<typeof HugeiconsIcon>["icon"];
-  accent?: Accent;
+  accent?: Tone;
   hint?: string;
 }) {
   return (
     <Card className="gap-3">
       <div className="flex items-center justify-between px-(--card-spacing)">
         <span className="text-sm text-muted-foreground">{label}</span>
-        <span className={cn("grid size-8 place-items-center rounded-lg", ACCENTS[accent])}>
+        <span className={cn("grid size-8 place-items-center rounded-lg", TONE_SOFT[accent])}>
           <HugeiconsIcon icon={icon} size={16} strokeWidth={1.8} aria-hidden />
         </span>
       </div>
