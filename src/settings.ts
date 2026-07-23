@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { dbEnabled, getDb } from "./db.ts";
+import { dbEnabled, getDb, isSchemaMissing, markDbUnavailable } from "./db.ts";
 
 const TABLE = "user_settings";
 
@@ -68,33 +68,46 @@ export const DEFAULT_SETTINGS = (userId: string): UserSettings => ({
 
 const fileFor = (userId: string) => join(process.cwd(), "data", "users", `${userId}.json`);
 
+function fileLoadSettings(userId: string): UserSettings {
+  const f = fileFor(userId);
+  if (!existsSync(f)) return DEFAULT_SETTINGS(userId);
+  return JSON.parse(readFileSync(f, "utf8")) as UserSettings;
+}
+
+function fileSaveSettings(s: UserSettings): void {
+  const f = fileFor(s.userId);
+  mkdirSync(dirname(f), { recursive: true });
+  writeFileSync(f, JSON.stringify(s, null, 2));
+}
+
 export async function loadSettings(userId: string): Promise<UserSettings> {
-  if (!dbEnabled()) {
-    const f = fileFor(userId);
-    if (!existsSync(f)) return DEFAULT_SETTINGS(userId);
-    return JSON.parse(readFileSync(f, "utf8")) as UserSettings;
-  }
+  if (!dbEnabled()) return fileLoadSettings(userId);
   const { data, error } = await getDb()
     .from(TABLE)
     .select("settings")
     .eq("user_id", userId)
     .maybeSingle();
-  if (error) throw new Error(`loadSettings: ${error.message}`);
+  if (error) {
+    if (isSchemaMissing(error)) {
+      markDbUnavailable(error.message);
+      return fileLoadSettings(userId);
+    }
+    throw new Error(`loadSettings: ${error.message}`);
+  }
   return (data?.settings as UserSettings) ?? DEFAULT_SETTINGS(userId);
 }
 
 export async function saveSettings(s: UserSettings): Promise<void> {
   s.updatedAt = new Date().toISOString();
-  if (!dbEnabled()) {
-    const f = fileFor(s.userId);
-    mkdirSync(dirname(f), { recursive: true });
-    writeFileSync(f, JSON.stringify(s, null, 2));
-    return;
+  if (!dbEnabled()) return fileSaveSettings(s);
+  const { error } = await getDb().from(TABLE).upsert({ user_id: s.userId, settings: s });
+  if (error) {
+    if (isSchemaMissing(error)) {
+      markDbUnavailable(error.message);
+      return fileSaveSettings(s);
+    }
+    throw new Error(`saveSettings: ${error.message}`);
   }
-  const { error } = await getDb()
-    .from(TABLE)
-    .upsert({ user_id: s.userId, settings: s });
-  if (error) throw new Error(`saveSettings: ${error.message}`);
 }
 
 export function onboardingComplete(s: UserSettings): boolean {
