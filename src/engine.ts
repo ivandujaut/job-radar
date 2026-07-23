@@ -4,7 +4,7 @@ import { parse } from "yaml";
 import { fetchGreenhouseJobs } from "./adapters/greenhouse.ts";
 import { fetchLeverJobs } from "./adapters/lever.ts";
 import { fetchAshbyJobs } from "./adapters/ashby.ts";
-import { submitGreenhouseApplication, type Applicant } from "./apply/greenhouse.ts";
+import { submitApplication, type Applicant } from "./apply/index.ts";
 import { rankJob } from "./rank.ts";
 import { loadSettings, saveSettings } from "./settings.ts";
 import { listUserIds } from "./users.ts";
@@ -137,7 +137,7 @@ export async function runEngine(
     }
 
     if (canAutoApply) {
-      const result = await submitGreenhouseApplication(job, cfg.applicant, { dryRun: !live });
+      const result = await submitApplication(job, cfg.applicant, { dryRun: !live });
       if (result.ok) {
         item.status = "sent";
         appliedThisRun++;
