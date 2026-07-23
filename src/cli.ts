@@ -30,7 +30,9 @@ async function main() {
     }
     case "rank": {
       const r = rules();
-      const pending = loadQueue().filter((i) => i.status === "pending_rank");
+      const all = args.includes("--all"); // re-rank discarded and pending_review too (e.g. after a profile update)
+      const statuses = all ? ["pending_rank", "discarded", "pending_review"] : ["pending_rank"];
+      const pending = loadQueue().filter((i) => statuses.includes(i.status));
       console.log(`rankeando ${pending.length} vacantes...`);
       for (const item of pending) {
         if (!item.job) continue;

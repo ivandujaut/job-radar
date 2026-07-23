@@ -1,12 +1,17 @@
-# Candidate profile used by the ranking and drafting agents.
-# TODO(ivan): revisar y completar. No inflar niveles: los agentes redactan
-# con lo que diga este archivo.
+# Perfil del candidato usado por los agentes de ranking y drafting.
+# Fuentes: cv-ivan-dujaut.pdf + ivandujaut.com/about (2026-07). Sin inflar:
+# los agentes redactan con lo que diga este archivo.
 
 name: Ivan Dujaut
-location: Argentina
+location: Argentina (remoto; experiencia con equipos de EE.UU. y LATAM)
+links:
+  website: https://ivandujaut.com
+  linkedin: https://linkedin.com/in/ivan-dujaut
+  github: https://github.com/ivandujaut
+
 languages:
   - es: nativo
-  - en: A2 basico  # los drafts en ingles se marcan para revision extra
+  - en: A2 basico, lectura tecnica fluida  # drafts en ingles se marcan para revision extra
 
 target_roles:
   - Product Manager
@@ -14,18 +19,79 @@ target_roles:
   - Product Engineer
   - Technical Product Manager
 
-background: |
-  Bioingeniero pivoteando a roles de Producto. Experiencia construyendo
-  productos con IA de punta a punta: bot de WhatsApp de venta asesorada de
-  seguros (benchmarkeado contra el bot de La Caja), teardown publicado de
-  productos de interpretacion de analisis clinicos, portfolio tecnico en
-  Next.js. Fortaleza: juicio de producto en bordes y casos limite, evals
-  y protocolos de prueba reproducibles.
+summary: |
+  Product Engineer con 4+ anios construyendo aplicaciones web en fintech y
+  startups, pivoteando el foco hacia gestion de producto. Bioingeniero (ITBA)
+  con base cuantitativa fuerte: metricas, modelado, experimentos y trade-offs
+  explicitos. Combina ejecucion tecnica con decisiones de producto medibles.
 
-evidence:
-  - "Caso de estudio: teardown de interpretes de analisis de laboratorio (6 casos sinteticos, 2 productos)"
-  - "Bot de venta asesorada de seguros por WhatsApp"
-  - "Portfolio: ivandujaut (Next.js)"
+experience:
+  - role: Product Engineer
+    company: Prizmstack (California, remoto)
+    period: 2026-02 a presente
+    highlights:
+      - Desarrollo de FIJI, plataforma de valuacion para negocios inmobiliarios
+      - Lidera la migracion de no-code (Bubble) a Next.js
+      - Motor de simulaciones que conecta metricas operativas con valuaciones financieras
+      - Interseccion ingenieria-producto: flujos de usuario, dashboards, marketplace, admin
+
+  - role: Trainee -> Product Engineer
+    company: Banana Software (remoto)
+    period: 2021-12 a 2026-01 (4 anios)
+    highlights:
+      - Como Product Engineer (2025-08 a 2026-01) mejoro la predictibilidad de sprints del 60% al 90% modelando esfuerzo real
+      - Elimino ~20% de funcionalidades de bajo valor priorizando por impacto
+      - Como Semi Senior lidero 4 proyectos end-to-end con equipos de 3-4 personas
+      - Plataformas B2C y B2B con hasta 1500 usuarios activos
+      - Integro pagos con Mercado Pago, PayPal y Stripe; optimizo checkout B2C subiendo la tasa de finalizacion de reservas
+      - Mejoro performance web ~20% (Lighthouse, SEO, Core Web Vitals)
+      - Introdujo Next.js, Tailwind y shadcn por primera vez en la empresa
+
+  - role: Frontend Developer (equipo fundador)
+    company: Tumo, Techstars W24 (Nueva York, remoto)
+    period: 2023-08 a 2024-05, en paralelo a Banana
+    highlights:
+      - Producto fintech 0->1 para gestion impositiva de freelancers en Argentina
+      - Batch Techstars W24 (Stellar & MoneyGram Accelerator) en Nueva York
+      - Mejoras de onboarding que incrementaron el engagement ~40%
+      - ~100 usuarios early adopters en fase de validacion
+      - Colaboracion directa con founders en decisiones de roadmap
+
+  - role: Profesor de Tecnicas Digitales I
+    company: Instituto Politecnico San Arnoldo Janssen (Posadas)
+    period: 2024-10 a presente, en paralelo
+    highlights:
+      - Docencia a 4to anio de Electronica; planificacion del programa academico
+
+  - role: Planner Contract Business
+    company: Drager (Buenos Aires)
+    period: 2021-09 a 2021-12
+    highlights:
+      - Planificacion nacional de mantenimientos con Microsoft Dynamics NAV, KPIs y reportes operativos
+
+education:
+  - degree: Bioingenieria (MSc), GPA 3.6/4.0, beca por excelencia academica
+    institution: ITBA, Instituto Tecnologico de Buenos Aires
+    thesis: |
+      Prediccion de mortalidad a 2 anios y mutacion del gen KRAS en metastasis
+      hepatica de cancer colorrectal, con el Hospital Italiano de Buenos Aires.
+      Datos clinicos reales, modelos predictivos y analisis estadistico en oncologia.
+  - degree: Tecnico Electronico
+    institution: IPSAJ (Posadas)
+
+projects:
+  - "Bot de WhatsApp de venta asesorada de seguros, benchmarkeado contra el bot Letizia de La Caja"
+  - "Teardown publicado de productos de interpretacion de analisis clinicos (protocolo de 6 casos sinteticos, 2 productos)"
+  - "job-radar: agentes de busqueda laboral con cola de revision humana"
+  - "Portfolio bilingue en Next.js: ivandujaut.com"
+
+skills:
+  frontend: React 19, Next.js 16 (App Router, Server Components), TypeScript, Tailwind, shadcn/ui
+  backend: Node.js, Express, Prisma, Zod, REST APIs, MongoDB, SQL
+  architecture: monorepos en produccion, clean architecture, TDD (Mocha, Chai)
+  product: priorizacion por impacto, estimacion y capacity modeling, Figma, Jira, funnels de conversion y checkout
+  data: SQL, analisis estadistico aplicado (tesis clinica), KPIs operativos (ERP), Lighthouse/CWV
+  # Honestidad: sin experiencia acreditada en Looker, Amplitude ni GA.
 
 tone: |
   Directo, concreto, sin inflar. Primera persona. Frases cortas.
