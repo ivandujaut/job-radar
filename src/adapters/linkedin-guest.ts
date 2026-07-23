@@ -47,5 +47,35 @@ export function parseGuestHtml(html: string): Job[] {
   return jobs;
 }
 
+/**
+ * Fetch the public job view page and extract the description text.
+ * Adds a polite delay upstream; returns undefined if the page resists.
+ */
+export async function fetchGuestDescription(jobUrl: string): Promise<string | undefined> {
+  const res = await fetch(jobUrl, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+      "Accept-Language": "es-AR,es;q=0.9,en;q=0.5",
+    },
+  });
+  if (!res.ok) return undefined;
+  const html = await res.text();
+  const block = html.match(/show-more-less-html__markup[^>]*>([\s\S]*?)<\/div>/)?.[1];
+  if (!block) return undefined;
+  const text = block
+    .replace(/<br[^>]*>/g, "\n")
+    .replace(/<\/(p|li|ul|ol|h\d)>/g, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return text || undefined;
+}
+
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 const extract = (s: string, re: RegExp): string | undefined => s.match(re)?.[1];
 const clean = (s: string) => s.replace(/\s+/g, " ").trim();

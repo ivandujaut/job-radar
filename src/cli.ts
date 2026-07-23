@@ -1,4 +1,4 @@
-import { searchGuestJobs } from "./adapters/linkedin-guest.ts";
+import { fetchGuestDescription, searchGuestJobs, sleep } from "./adapters/linkedin-guest.ts";
 import { rules } from "./config.ts";
 import { rankJob } from "./rank.ts";
 import { findById, loadQueue, log, saveQueue, upsert } from "./store.ts";
@@ -19,8 +19,10 @@ async function main() {
       let added = 0;
       for (const job of jobs) {
         if (existing.has(job.id)) continue;
+        await sleep(2000 + Math.random() * 3000); // polite pacing between detail fetches
+        job.description = await fetchGuestDescription(job.url);
         const item: QueueItem = { id: job.id, kind: "application", status: "pending_rank", job, history: [] };
-        upsert(log(item, `discovered via ${job.source}`));
+        upsert(log(item, `discovered via ${job.source}${job.description ? " (with description)" : " (title only)"}`));
         added++;
       }
       console.log(`${jobs.length} vacantes encontradas, ${added} nuevas en cola (pending_rank)`);
