@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { ApplicationCard } from "@/components/queue/application-card";
-import { ConnectionCard } from "@/components/queue/connection-card";
+import { InboxIcon, CheckmarkCircle02Icon, SentIcon, CancelCircleIcon } from "@hugeicons/core-free-icons";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { QueueList } from "@/components/queue/queue-list";
 import { RunEngineButton } from "@/components/dashboard/run-engine-button";
 import { toggleAutoApply } from "@/app/(app)/settings/actions";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getSession } from "@/src/auth.ts";
@@ -16,49 +16,37 @@ export const dynamic = "force-dynamic";
 const TABS = ["review", "applications", "connections", "history"] as const;
 type Tab = (typeof TABS)[number];
 
-const TAB_TITLES: Record<Tab, string> = {
-  review: "Revisión",
-  applications: "Aplicaciones",
-  connections: "Conexiones",
-  history: "Historial",
+const TAB_META: Record<Tab, { title: string; empty: string; count: (n: number) => string }> = {
+  review: {
+    title: "Revisión",
+    empty: "No hay nada esperando revisión.",
+    count: (n) => (n === 1 ? "1 vacante esperando tu decisión" : `${n} vacantes esperando tu decisión`),
+  },
+  applications: {
+    title: "Aplicaciones",
+    empty: "Todavía no hay vacantes rankeadas.",
+    count: (n) => (n === 1 ? "1 vacante rankeada por match" : `${n} vacantes rankeadas por match`),
+  },
+  connections: {
+    title: "Conexiones",
+    empty: "Todavía no hay conexiones descubiertas. Corré el people finder desde la CLI para poblarlas.",
+    count: (n) => (n === 1 ? "1 contacto sugerido" : `${n} contactos sugeridos`),
+  },
+  history: {
+    title: "Historial",
+    empty: "Sin decisiones todavía.",
+    count: (n) => (n === 1 ? "1 decisión tomada" : `${n} decisiones tomadas`),
+  },
 };
-
-const STATUS_LABELS: Record<QueueStatus, string> = {
-  pending_rank: "sin rankear",
-  pending_review: "en revisión",
-  approved: "aprobado",
-  rejected: "rechazado",
-  sent: "enviado",
-  discarded: "descartado",
-};
-
-function StatCard({ label, value }: { label: string; value: number }) {
-  return (
-    <Card>
-      <CardContent className="pt-6">
-        <p className="font-mono text-2xl font-semibold">{value}</p>
-        <p className="text-sm text-muted-foreground">{label}</p>
-      </CardContent>
-    </Card>
-  );
-}
 
 function EmptyState({ message, action }: { message: string; action?: React.ReactNode }) {
   return (
     <Card>
-      <CardContent className="flex flex-col items-start gap-3 pt-6">
+      <CardContent className="flex flex-col items-start gap-3 py-4">
         <p className="text-sm text-muted-foreground">{message}</p>
         {action}
       </CardContent>
     </Card>
-  );
-}
-
-function ItemCard({ item, readonly }: { item: QueueItem; readonly?: boolean }) {
-  return item.kind === "connection" ? (
-    <ConnectionCard item={item} readonly={readonly} />
-  ) : (
-    <ApplicationCard item={item} readonly={readonly} />
   );
 }
 
@@ -84,11 +72,15 @@ export default async function DashboardPage({
   const connections = items.filter((i) => i.kind === "connection");
   const history = items.filter((i) => ["approved", "rejected", "sent"].includes(i.status));
 
+  const lists: Record<Tab, QueueItem[]> = { review, applications, connections, history };
+  const active = lists[activeTab];
+  const meta = TAB_META[activeTab];
+
   return (
-    <main className="mx-auto w-full max-w-4xl space-y-8 p-6 md:p-10">
-      <header className="flex items-start justify-between gap-4">
+    <main className="mx-auto w-full max-w-5xl space-y-8 p-6 md:p-10">
+      <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{TAB_TITLES[activeTab]}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{meta.title}</h1>
           <p className="text-sm text-muted-foreground">
             {autonomy.autoApplyEnabled
               ? `Auto-apply activo en ATS con match ≥ ${autonomy.autoApplyThreshold}. Las notas de conexión siempre pasan por vos.`
@@ -114,58 +106,42 @@ export default async function DashboardPage({
       </header>
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard label="En revisión" value={review.length} />
-        <StatCard label="Aprobados" value={byStatus("approved").length} />
-        <StatCard label="Enviados" value={byStatus("sent").length} />
-        <StatCard label="Descartados" value={byStatus("discarded").length} />
+        <StatCard label="En revisión" value={review.length} icon={InboxIcon} accent="blue" />
+        <StatCard label="Aprobados" value={byStatus("approved").length} icon={CheckmarkCircle02Icon} accent="green" />
+        <StatCard label="Enviados" value={byStatus("sent").length} icon={SentIcon} accent="violet" />
+        <StatCard label="Descartados" value={byStatus("discarded").length} icon={CancelCircleIcon} accent="zinc" />
       </section>
 
       <section className="space-y-4">
-        {activeTab === "review" &&
-          (review.length === 0 ? (
-            <EmptyState
-              message="No hay nada esperando revisión."
-              action={<RunEngineButton label="Buscar vacantes ahora" />}
-            />
-          ) : (
-            review.map((i) => <ItemCard key={i.id} item={i} />)
-          ))}
+        <div className="space-y-1">
+          <h2 className="text-sm font-medium text-foreground">{meta.count(active.length)}</h2>
+          {(activeTab === "review" || activeTab === "applications") && active.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              El match va de 0 a 100: qué tan bien encaja tu perfil con la vacante. Verde:
+              auto-aplicable ({autonomy.autoApplyThreshold}+). Ámbar: encaje medio (55+).
+            </p>
+          )}
+        </div>
 
-        {activeTab === "applications" &&
-          (applications.length === 0 ? (
-            <EmptyState message="Todavía no hay vacantes rankeadas." action={<RunEngineButton />} />
-          ) : (
-            applications.map((i) => (
-              <div key={i.id} className="space-y-1">
-                <Badge variant="outline">{STATUS_LABELS[i.status]}</Badge>
-                <ApplicationCard item={i} readonly={i.status !== "pending_review"} />
-              </div>
-            ))
-          ))}
-
-        {activeTab === "connections" &&
-          (connections.length === 0 ? (
-            <EmptyState message="Todavía no hay conexiones descubiertas. Corré el people finder desde la CLI para poblarlas." />
-          ) : (
-            connections.map((i) => (
-              <div key={i.id} className="space-y-1">
-                <Badge variant="outline">{STATUS_LABELS[i.status]}</Badge>
-                <ConnectionCard item={i} readonly={i.status !== "pending_review"} />
-              </div>
-            ))
-          ))}
-
-        {activeTab === "history" &&
-          (history.length === 0 ? (
-            <EmptyState message="Sin decisiones todavía." />
-          ) : (
-            history.map((i) => (
-              <div key={i.id} className="space-y-1">
-                <Badge variant="outline">{STATUS_LABELS[i.status]}</Badge>
-                <ItemCard item={i} readonly />
-              </div>
-            ))
-          ))}
+        {active.length === 0 ? (
+          <EmptyState
+            message={meta.empty}
+            action={
+              activeTab === "review" ? (
+                <RunEngineButton label="Buscar vacantes ahora" />
+              ) : activeTab === "applications" ? (
+                <RunEngineButton />
+              ) : undefined
+            }
+          />
+        ) : (
+          <QueueList
+            items={active}
+            readonly={activeTab === "history" ? true : undefined}
+            showStatus={activeTab !== "review"}
+            autoApplyThreshold={autonomy.autoApplyThreshold}
+          />
+        )}
       </section>
     </main>
   );
