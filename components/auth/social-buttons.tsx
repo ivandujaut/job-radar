@@ -1,5 +1,7 @@
 "use client";
 
+import { HugeiconsIcon } from "@hugeicons/react";
+import { GoogleIcon, Linkedin01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -19,9 +21,11 @@ export function SocialButtons({
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <Button type="button" variant="outline" onClick={() => authenticate("oauth_google")}>
+          <HugeiconsIcon icon={GoogleIcon} size={16} strokeWidth={1.8} aria-hidden />
           Google
         </Button>
         <Button type="button" variant="outline" onClick={() => authenticate("oauth_linkedin_oidc")}>
+          <HugeiconsIcon icon={Linkedin01Icon} size={16} strokeWidth={1.8} aria-hidden />
           LinkedIn
         </Button>
       </div>
