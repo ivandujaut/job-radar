@@ -31,14 +31,21 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
             conexión. Nada se envía sin tu visto bueno.
           </p>
         </div>
-        <Image
-          src="/dashboard-preview.png"
-          alt="Vista del dashboard de job-radar"
-          width={1400}
-          height={1000}
-          priority
-          className="absolute left-16 top-56 w-[1250px] max-w-none rounded-tl-2xl border-l border-t border-border shadow-2xl"
-        />
+        {/* Notebook-style device frame: thick dark bezel on the top and left,
+            rounded top-left corner; the device bleeds off the right and bottom
+            edges (clipped by the panel's overflow-hidden). In dark mode the
+            frame reads via a light hairline outlining the silhouette, not the
+            fill color. */}
+        <div className="absolute left-16 top-56 w-[1250px] overflow-hidden rounded-tl-[2rem] border-l-[14px] border-t-[14px] border-neutral-800 bg-neutral-900 shadow-[0_-30px_80px_-20px_rgba(0,0,0,0.8)] ring-1 ring-white/15">
+          <Image
+            src="/dashboard-preview.png"
+            alt="Vista del dashboard de job-radar"
+            width={1400}
+            height={1000}
+            priority
+            className="block w-full max-w-none rounded-tl-xl ring-1 ring-white/5"
+          />
+        </div>
       </div>
     </div>
   );
