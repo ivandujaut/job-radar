@@ -1,5 +1,6 @@
 import {
   DashboardSquare01Icon,
+  InboxIcon,
   JobSearchIcon,
   UserGroupIcon,
   Time04Icon,
@@ -22,10 +23,11 @@ export interface NavItem {
 }
 
 export const MENU: NavItem[] = [
-  { key: "review", label: "Revisión", href: "/?tab=review", icon: DashboardSquare01Icon, badge: "review" },
-  { key: "applications", label: "Aplicaciones", href: "/?tab=applications", icon: JobSearchIcon },
-  { key: "connections", label: "Conexiones", href: "/?tab=connections", icon: UserGroupIcon },
-  { key: "history", label: "Historial", href: "/?tab=history", icon: Time04Icon },
+  { key: "dashboard", label: "Dashboard", href: "/", icon: DashboardSquare01Icon },
+  { key: "review", label: "Revisión", href: "/review?tab=review", icon: InboxIcon, badge: "review" },
+  { key: "applications", label: "Aplicaciones", href: "/review?tab=applications", icon: JobSearchIcon },
+  { key: "connections", label: "Conexiones", href: "/review?tab=connections", icon: UserGroupIcon },
+  { key: "history", label: "Historial", href: "/review?tab=history", icon: Time04Icon },
 ];
 
 export const OPTIONS: NavItem[] = [
