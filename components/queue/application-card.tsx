@@ -4,19 +4,30 @@ import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { approveItem, rejectItem } from "@/app/actions";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { StatusBadge } from "@/components/queue/status-badge";
 import { cn } from "@/lib/utils";
 import type { QueueItem } from "@/src/types.ts";
 
-function scoreVariant(score: number): "default" | "secondary" | "outline" {
-  if (score >= 70) return "default";
-  if (score >= 55) return "secondary";
-  return "outline";
+const MATCH_HINT =
+  "Match (0-100): afinidad estimada entre tu perfil y esta vacante. Más alto es mejor encaje.";
+
+function scoreColor(score: number): string {
+  if (score >= 70) return "text-emerald-400";
+  if (score >= 55) return "text-amber-400";
+  return "text-muted-foreground";
 }
 
-export function ApplicationCard({ item, readonly }: { item: QueueItem; readonly?: boolean }) {
+export function ApplicationCard({
+  item,
+  readonly,
+  showStatus,
+}: {
+  item: QueueItem;
+  readonly?: boolean;
+  showStatus?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const job = item.job;
   const ranking = item.ranking;
@@ -30,16 +41,29 @@ export function ApplicationCard({ item, readonly }: { item: QueueItem; readonly?
   return (
     <Card size="sm">
       <div className="flex items-start justify-between gap-3 px-(--card-spacing)">
-        <div className="min-w-0 space-y-0.5">
-          <p className="truncate font-medium">
-            {job.title} <span className="text-muted-foreground">@ {job.company}</span>
-          </p>
-          <p className="truncate text-xs text-muted-foreground">{job.location}</p>
+        <div className="min-w-0 space-y-1.5">
+          <div className="space-y-0.5">
+            <p className="truncate font-medium">
+              {job.title} <span className="text-muted-foreground">@ {job.company}</span>
+            </p>
+            <p className="truncate text-xs text-muted-foreground">{job.location}</p>
+          </div>
+          {showStatus && <StatusBadge status={item.status} />}
         </div>
         {ranking && (
-          <Badge variant={scoreVariant(ranking.score)} className="shrink-0 font-mono tabular-nums">
-            {ranking.score}
-          </Badge>
+          <div className="shrink-0 text-right" title={MATCH_HINT}>
+            <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              match
+            </div>
+            <div
+              className={cn(
+                "font-mono text-xl font-semibold leading-none tabular-nums",
+                scoreColor(ranking.score),
+              )}
+            >
+              {ranking.score}
+            </div>
+          </div>
         )}
       </div>
 

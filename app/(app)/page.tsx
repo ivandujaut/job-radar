@@ -16,14 +16,27 @@ export const dynamic = "force-dynamic";
 const TABS = ["review", "applications", "connections", "history"] as const;
 type Tab = (typeof TABS)[number];
 
-const TAB_META: Record<Tab, { title: string; empty: string }> = {
-  review: { title: "Revisión", empty: "No hay nada esperando revisión." },
-  applications: { title: "Aplicaciones", empty: "Todavía no hay vacantes rankeadas." },
+const TAB_META: Record<Tab, { title: string; empty: string; count: (n: number) => string }> = {
+  review: {
+    title: "Revisión",
+    empty: "No hay nada esperando revisión.",
+    count: (n) => (n === 1 ? "1 vacante esperando tu decisión" : `${n} vacantes esperando tu decisión`),
+  },
+  applications: {
+    title: "Aplicaciones",
+    empty: "Todavía no hay vacantes rankeadas.",
+    count: (n) => (n === 1 ? "1 vacante rankeada por match" : `${n} vacantes rankeadas por match`),
+  },
   connections: {
     title: "Conexiones",
     empty: "Todavía no hay conexiones descubiertas. Corré el people finder desde la CLI para poblarlas.",
+    count: (n) => (n === 1 ? "1 contacto sugerido" : `${n} contactos sugeridos`),
   },
-  history: { title: "Historial", empty: "Sin decisiones todavía." },
+  history: {
+    title: "Historial",
+    empty: "Sin decisiones todavía.",
+    count: (n) => (n === 1 ? "1 decisión tomada" : `${n} decisiones tomadas`),
+  },
 };
 
 function EmptyState({ message, action }: { message: string; action?: React.ReactNode }) {
@@ -100,10 +113,14 @@ export default async function DashboardPage({
       </section>
 
       <section className="space-y-4">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-medium text-muted-foreground">
-            {active.length} {active.length === 1 ? "elemento" : "elementos"}
-          </h2>
+        <div className="space-y-1">
+          <h2 className="text-sm font-medium text-foreground">{meta.count(active.length)}</h2>
+          {(activeTab === "review" || activeTab === "applications") && active.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              El match va de 0 a 100: qué tan bien encaja tu perfil con la vacante. Verde: encaje
+              fuerte (70+). Ámbar: medio (55+).
+            </p>
+          )}
         </div>
 
         {active.length === 0 ? (

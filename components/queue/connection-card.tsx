@@ -8,10 +8,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { StatusBadge } from "@/components/queue/status-badge";
 import { cn } from "@/lib/utils";
 import type { QueueItem } from "@/src/types.ts";
 
-export function ConnectionCard({ item, readonly }: { item: QueueItem; readonly?: boolean }) {
+export function ConnectionCard({
+  item,
+  readonly,
+  showStatus,
+}: {
+  item: QueueItem;
+  readonly?: boolean;
+  showStatus?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const person = item.person;
   if (!person) return null;
@@ -21,11 +30,14 @@ export function ConnectionCard({ item, readonly }: { item: QueueItem; readonly?:
   return (
     <Card size="sm">
       <div className="flex items-start justify-between gap-3 px-(--card-spacing)">
-        <div className="min-w-0 space-y-0.5">
-          <p className="truncate font-medium">{person.name}</p>
-          <p className="truncate text-xs text-muted-foreground">
-            {person.role} @ {person.company}
-          </p>
+        <div className="min-w-0 space-y-1.5">
+          <div className="space-y-0.5">
+            <p className="truncate font-medium">{person.name}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {person.role} @ {person.company}
+            </p>
+          </div>
+          {showStatus && <StatusBadge status={item.status} />}
         </div>
         <Badge variant="outline" className="shrink-0">
           conexión

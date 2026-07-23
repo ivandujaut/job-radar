@@ -3,24 +3,22 @@
 import { useState } from "react";
 import { ApplicationCard } from "@/components/queue/application-card";
 import { ConnectionCard } from "@/components/queue/connection-card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { QueueItem, QueueStatus } from "@/src/types.ts";
+import type { QueueItem } from "@/src/types.ts";
 
-const STATUS_LABELS: Record<QueueStatus, string> = {
-  pending_rank: "sin rankear",
-  pending_review: "en revisión",
-  approved: "aprobado",
-  rejected: "rechazado",
-  sent: "enviado",
-  discarded: "descartado",
-};
-
-function Row({ item, readonly }: { item: QueueItem; readonly?: boolean }) {
+function Row({
+  item,
+  readonly,
+  showStatus,
+}: {
+  item: QueueItem;
+  readonly?: boolean;
+  showStatus?: boolean;
+}) {
   return item.kind === "connection" ? (
-    <ConnectionCard item={item} readonly={readonly} />
+    <ConnectionCard item={item} readonly={readonly} showStatus={showStatus} />
   ) : (
-    <ApplicationCard item={item} readonly={readonly} />
+    <ApplicationCard item={item} readonly={readonly} showStatus={showStatus} />
   );
 }
 
@@ -47,10 +45,12 @@ export function QueueList({
   return (
     <div className="space-y-3">
       {shown.map((item) => (
-        <div key={item.id} className="space-y-1.5">
-          {showStatus && <Badge variant="outline">{STATUS_LABELS[item.status]}</Badge>}
-          <Row item={item} readonly={readonly ?? item.status !== "pending_review"} />
-        </div>
+        <Row
+          key={item.id}
+          item={item}
+          readonly={readonly ?? item.status !== "pending_review"}
+          showStatus={showStatus}
+        />
       ))}
       {remaining > 0 && (
         <div className="flex justify-center pt-1">
