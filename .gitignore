@@ -2,7 +2,7 @@ node_modules/
 data/
 .env
 .DS_Store
-.vscode.next/
+.vscode/
 data/users/
 .next/
 *.tsbuildinfo
