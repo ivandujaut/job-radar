@@ -10,16 +10,24 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  */
 let _client: SupabaseClient | null = null;
 
+// The Vercel Supabase integration provisions NEXT_PUBLIC_SUPABASE_URL; a manual
+// setup may use SUPABASE_URL. Accept either.
+function supabaseUrl(): string | undefined {
+  return process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+}
+
 export function dbEnabled(): boolean {
-  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return Boolean(supabaseUrl() && process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
 export function getDb(): SupabaseClient {
-  if (!dbEnabled()) throw new Error("Supabase no configurado (faltan SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)");
+  if (!dbEnabled())
+    throw new Error(
+      "Supabase no configurado (faltan SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY)"
+    );
   if (!_client) {
-    // Dynamic import keeps @supabase out of bundles that never touch the DB.
     const { createClient } = require("@supabase/supabase-js") as typeof import("@supabase/supabase-js");
-    _client = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    _client = createClient(supabaseUrl()!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
       auth: { persistSession: false },
     });
   }

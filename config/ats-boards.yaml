@@ -11,9 +11,15 @@ greenhouse:
   - token: airbnb
     note: "ejemplo"
 
-# TODO: lever y ashby adapters. Lever: jobs.lever.co/<token>; Ashby: jobs.ashbyhq.com/<token>
-lever: []
-ashby: []
+# Lever: jobs.lever.co/<token>. Ejemplo real verificable.
+lever:
+  - token: spotify
+    note: "ejemplo real (board grande)"
+
+# Ashby: jobs.ashbyhq.com/<token>. El token es case-sensitive.
+ashby:
+  - token: Ashby
+    note: "ejemplo real"
 
 # Datos del solicitante para el envio (dry-run los muestra, no los manda).
 # El path del CV debe existir localmente para el envio real.

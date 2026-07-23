@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { fetchGreenhouseJobs } from "./adapters/greenhouse.ts";
+import { fetchLeverJobs } from "./adapters/lever.ts";
+import { fetchAshbyJobs } from "./adapters/ashby.ts";
 import { submitGreenhouseApplication, type Applicant } from "./apply/greenhouse.ts";
 import { rankJob } from "./rank.ts";
 import { loadSettings, saveSettings } from "./settings.ts";
@@ -11,8 +13,8 @@ import { AUTO_APPLY_SOURCES, type Job, type QueueItem } from "./types.ts";
 
 interface AtsConfig {
   greenhouse: { token: string; note?: string }[];
-  lever: unknown[];
-  ashby: unknown[];
+  lever: { token: string; note?: string }[];
+  ashby: { token: string; note?: string }[];
   applicant: Applicant;
 }
 
@@ -74,15 +76,22 @@ export async function runEngine(
     console.log(m);
   };
 
-  // 1. Scan ATS boards for candidate jobs.
+  // 1. Scan ATS boards for candidate jobs, across all supported providers.
   const jobs: Job[] = [];
-  for (const b of cfg.greenhouse) {
-    try {
-      const found = await fetchGreenhouseJobs(b.token);
-      jobs.push(...found);
-      say(`scan greenhouse:${b.token} -> ${found.length} vacantes`);
-    } catch (e) {
-      say(`scan greenhouse:${b.token} FALLO: ${(e as Error).message}`);
+  const sources: { label: string; boards: { token: string }[]; fetch: (t: string) => Promise<Job[]> }[] = [
+    { label: "greenhouse", boards: cfg.greenhouse ?? [], fetch: fetchGreenhouseJobs },
+    { label: "lever", boards: cfg.lever ?? [], fetch: fetchLeverJobs },
+    { label: "ashby", boards: cfg.ashby ?? [], fetch: fetchAshbyJobs },
+  ];
+  for (const s of sources) {
+    for (const b of s.boards) {
+      try {
+        const found = await s.fetch(b.token);
+        jobs.push(...found);
+        say(`scan ${s.label}:${b.token} -> ${found.length} vacantes`);
+      } catch (e) {
+        say(`scan ${s.label}:${b.token} FALLO: ${(e as Error).message}`);
+      }
     }
   }
   out.scanned = jobs.length;
