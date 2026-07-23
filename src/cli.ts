@@ -1,5 +1,8 @@
+import { createHash } from "node:crypto";
 import { fetchGuestDescription, searchGuestJobs, sleep } from "./adapters/linkedin-guest.ts";
-import { rules } from "./config.ts";
+import { loadHitsFile, searchPeopleHits } from "./adapters/people-search.ts";
+import { rules, targets } from "./config.ts";
+import { draftNote, triagePeople } from "./people.ts";
 import { rankJob } from "./rank.ts";
 import { findById, loadQueue, log, saveQueue, upsert } from "./store.ts";
 import type { QueueItem } from "./types.ts";
@@ -49,6 +52,50 @@ async function main() {
       }
       break;
     }
+    case "people": {
+      // people [company] [--hits-file path] — discover hiring-relevant people
+      // at target companies, draft connection notes, queue for review.
+      const hitsFlag = args.indexOf("--hits-file");
+      const hitsFile = hitsFlag >= 0 ? args[hitsFlag + 1] : undefined;
+      const companyArg = args.find((a) => !a.startsWith("--") && a !== hitsFile);
+      const all = targets().companies;
+      const companies = companyArg
+        ? all.filter((c) => c.name.toLowerCase() === companyArg.toLowerCase())
+        : all;
+      if (!companies.length) throw new Error(`empresa no encontrada en targets.yaml: ${companyArg}`);
+
+      const existing = new Set(loadQueue().map((i) => i.id));
+      for (const c of companies) {
+        console.log(`\n${c.name}:`);
+        const hits = hitsFile ? loadHitsFile(hitsFile) : await searchPeopleHits(c.name);
+        console.log(`  ${hits.length} resultados de buscador`);
+        const people = await triagePeople(c.name, c.why, hits);
+        console.log(`  ${people.length} personas relevantes tras triage`);
+        for (const p of people) {
+          // A connection request needs an actual profile URL, not a press
+          // article that mentions the person.
+          if (!/linkedin\.com\/in\//.test(p.url)) {
+            console.log(`  ~ ${p.name} (${p.role}): sin perfil de LinkedIn verificado, lead para busqueda posterior`);
+            continue;
+          }
+          const id = createHash("sha1").update(p.url).digest("hex").slice(0, 10);
+          if (existing.has(id)) continue;
+          const draft = await draftNote(p);
+          const item: QueueItem = {
+            id,
+            kind: "connection",
+            status: "pending_review",
+            person: { name: p.name, role: p.role, company: p.company, url: p.url },
+            draft,
+            history: [],
+          };
+          upsert(log(item, `discovered (${p.relevance}) hook: ${p.hook}`));
+          console.log(`  + ${p.name} (${p.role}) -> nota en cola`);
+        }
+        if (!hitsFile) await sleep(1500);
+      }
+      break;
+    }
     case "rethreshold": {
       // Re-apply min_match_score to already-ranked items (both directions).
       const r = rules();
@@ -73,6 +120,13 @@ async function main() {
         break;
       }
       for (const i of items) {
+        if (i.kind === "connection" && i.person) {
+          console.log(`\n■ ${i.id}  [connection] ${i.person.name}`);
+          console.log(`  ${i.person.role} @ ${i.person.company}`);
+          console.log(`  ${i.person.url}`);
+          if (i.draft) console.log(`  nota (${i.draft.length} chars): "${i.draft}"`);
+          continue;
+        }
         console.log(`\n■ ${i.id}  [${i.ranking?.score ?? "-"}] ${i.kind}`);
         console.log(`  ${i.job?.title} @ ${i.job?.company} (${i.job?.location})`);
         console.log(`  ${i.job?.url}`);
@@ -100,7 +154,7 @@ async function main() {
       break;
     }
     default:
-      console.log("uso: cli.ts <scan|rank|queue|approve|reject|edit> [args]");
+      console.log("uso: cli.ts <scan|rank|rethreshold|people|queue|approve|reject|edit> [args]");
   }
 }
 
