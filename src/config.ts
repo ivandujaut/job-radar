@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 
-const CONFIG_DIR = join(import.meta.dirname, "..", "config");
+const CONFIG_DIR = join(process.cwd(), "config");
 
 function loadYaml<T>(name: string): T {
   return parse(readFileSync(join(CONFIG_DIR, name), "utf8")) as T;

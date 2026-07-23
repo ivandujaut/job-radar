@@ -2,7 +2,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { QueueItem } from "./types.ts";
 
-const DATA_FILE = join(import.meta.dirname, "..", "data", "queue.jsonl");
+// process.cwd() en vez de import.meta.dirname: el bundler de Next (Turbopack)
+// no define import.meta.dirname. CLI y dashboard corren desde el root del repo.
+const DATA_FILE = join(process.cwd(), "data", "queue.jsonl");
 
 export function loadQueue(): QueueItem[] {
   if (!existsSync(DATA_FILE)) return [];
