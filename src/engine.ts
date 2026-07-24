@@ -4,6 +4,8 @@ import { parse } from "yaml";
 import { fetchGreenhouseJobs } from "./adapters/greenhouse.ts";
 import { fetchLeverJobs } from "./adapters/lever.ts";
 import { fetchAshbyJobs } from "./adapters/ashby.ts";
+import { searchLinkedInRoles, fetchGuestDescription, sleep } from "./adapters/linkedin-guest.ts";
+import { rules } from "./config.ts";
 import { submitApplication, type Applicant } from "./apply/index.ts";
 import { discoverContactsForCompany } from "./contacts.ts";
 import { rankJob } from "./rank.ts";
@@ -102,6 +104,18 @@ export async function runEngine(
       }
     }
   }
+
+  // LinkedIn public guest job search (no login), gated by the same toggle.
+  // Query it with the user's target role keywords x locations from rules.yaml.
+  if (!disabled.has("linkedin-jobs")) {
+    const { keywords: liKeywords, locations: liLocations } = rules().search;
+    const li = await searchLinkedInRoles(liKeywords, liLocations, { onNote: say });
+    jobs.push(...li);
+    say(`linkedin: ${li.length} vacantes públicas (guest)`);
+  } else {
+    say(`fuente linkedin-jobs en pausa: se omite`);
+  }
+
   out.scanned = jobs.length;
 
   // 2. Pre-filter by role keywords (cheap) before spending LLM calls, and
@@ -125,6 +139,16 @@ export async function runEngine(
   const capRemaining = () => Math.max(0, autonomy.maxAutoAppliesPerDay - appliedThisRun);
 
   for (const job of fresh) {
+    // LinkedIn guest cards carry no description; fetch it just for the jobs we
+    // actually rank, so the match reflects the full posting. Best-effort.
+    if (job.source === "linkedin-guest" && !job.description) {
+      try {
+        job.description = await fetchGuestDescription(job.url);
+      } catch {
+        /* rank on the title alone */
+      }
+      await sleep(400);
+    }
     const ranking = await rankJob(job);
     out.ranked++;
     const item: QueueItem = { id: job.id, kind: "application", status: "pending_rank", job, ranking, history: [] };
