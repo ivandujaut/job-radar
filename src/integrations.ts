@@ -124,6 +124,18 @@ export function getIntegrations(disabledSources: string[] = []): Integration[] {
     },
 
     {
+      key: "linkedin-jobs",
+      name: "LinkedIn (vacantes)",
+      category: "Fuentes de vacantes",
+      icon: "linkedin",
+      status: "connected",
+      blurb:
+        "Buscá vacantes públicas de LinkedIn que matcheen tus roles objetivo y tu perfil. Sin login: van directo a tu revisión.",
+      detail: "Búsqueda pública activa",
+      toggleable: true,
+      enabled: !disabled.has("linkedin-jobs"),
+    },
+    {
       key: "linkedin",
       name: "LinkedIn",
       category: "Perfil y contactos",

@@ -77,5 +77,34 @@ export async function fetchGuestDescription(jobUrl: string): Promise<string | un
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * Run the public guest job search across every role keyword x location and
+ * dedup by job id. Best-effort: a failed query is reported via onNote and
+ * skipped, never aborting the batch. A small delay between queries keeps the
+ * public endpoint happy.
+ */
+export async function searchLinkedInRoles(
+  keywords: string[],
+  locations: string[],
+  opts: { delayMs?: number; onNote?: (m: string) => void } = {},
+): Promise<Job[]> {
+  const delay = opts.delayMs ?? 800;
+  const note = opts.onNote ?? (() => {});
+  const byId = new Map<string, Job>();
+  for (const kw of keywords) {
+    for (const loc of locations) {
+      try {
+        const found = await searchGuestJobs(kw, loc);
+        for (const j of found) byId.set(j.id, j);
+        note(`linkedin "${kw}" @ ${loc} -> ${found.length} vacantes`);
+      } catch (e) {
+        note(`linkedin "${kw}" @ ${loc} FALLO: ${(e as Error).message}`);
+      }
+      await sleep(delay);
+    }
+  }
+  return [...byId.values()];
+}
+
 const extract = (s: string, re: RegExp): string | undefined => s.match(re)?.[1];
 const clean = (s: string) => s.replace(/\s+/g, " ").trim();
