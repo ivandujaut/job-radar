@@ -77,13 +77,20 @@ export async function runEngine(
     console.log(m);
   };
 
+  // Sources (and the contact finder) the user paused on the Integrations screen.
+  const disabled = new Set(settings.disabledSources);
+
   // 1. Scan ATS boards for candidate jobs, across all supported providers.
   const jobs: Job[] = [];
-  const sources: { label: string; boards: { token: string }[]; fetch: (t: string) => Promise<Job[]> }[] = [
+  const allSources: { label: string; boards: { token: string }[]; fetch: (t: string) => Promise<Job[]> }[] = [
     { label: "greenhouse", boards: cfg.greenhouse ?? [], fetch: fetchGreenhouseJobs },
     { label: "lever", boards: cfg.lever ?? [], fetch: fetchLeverJobs },
     { label: "ashby", boards: cfg.ashby ?? [], fetch: fetchAshbyJobs },
   ];
+  const sources = allSources.filter((s) => !disabled.has(s.label));
+  for (const s of allSources) {
+    if (disabled.has(s.label)) say(`fuente ${s.label} en pausa: se omite`);
+  }
   for (const s of sources) {
     for (const b of s.boards) {
       try {
@@ -146,12 +153,14 @@ export async function runEngine(
         out.autoApplied++;
         say(`  [${ranking.score}] ${job.title} @ ${job.company}: AUTO-APPLY${result.dryRun ? " (dry-run)" : ""}`);
         // Warm the application: find contacts at this company. Best-effort, so
-        // a search failure never aborts the run.
-        try {
-          const c = await discoverContactsForCompany(job.company, `Auto-aplicaste a ${job.title} en ${job.company}`);
-          if (c.created) say(`    + ${c.created} contactos en ${job.company} -> cola de conexiones`);
-        } catch (e) {
-          say(`    ~ contactos ${job.company}: ${(e as Error).message}`);
+        // a search failure never aborts the run. Skipped if the user paused it.
+        if (!disabled.has("contacts")) {
+          try {
+            const c = await discoverContactsForCompany(job.company, `Auto-aplicaste a ${job.title} en ${job.company}`);
+            if (c.created) say(`    + ${c.created} contactos en ${job.company} -> cola de conexiones`);
+          } catch (e) {
+            say(`    ~ contactos ${job.company}: ${(e as Error).message}`);
+          }
         }
       } else {
         item.status = "pending_review";

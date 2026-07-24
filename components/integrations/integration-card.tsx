@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { LinkedInConnect } from "@/components/integrations/linkedin-connect";
 import { ClaudeConnect } from "@/components/integrations/claude-connect";
+import { SourceToggle } from "@/components/integrations/source-toggle";
 import { cn } from "@/lib/utils";
 import type { Integration, IntegrationIcon, IntegrationStatus } from "@/src/integrations.ts";
 
@@ -65,7 +66,7 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
             <p className="truncate text-xs text-muted-foreground">{integration.category}</p>
           </div>
         </div>
-        {!integration.action && (
+        {!integration.action && !integration.toggleable && (
           <Badge variant="outline" className={cn("shrink-0 gap-1.5 font-normal", status.className)}>
             <span className={cn("size-1.5 rounded-full", status.dot)} aria-hidden />
             {status.label}
@@ -92,6 +93,9 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
 
         {integration.action === "linkedin" && <LinkedInConnect />}
         {integration.action === "claude" && <ClaudeConnect config={integration.mcpConfig ?? ""} />}
+        {integration.toggleable && (
+          <SourceToggle sourceKey={integration.key} enabled={integration.enabled ?? true} />
+        )}
       </div>
     </Card>
   );
