@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Linkedin01Icon,
@@ -9,12 +8,13 @@ import {
   CpuIcon,
   CheckmarkCircle02Icon,
   Clock01Icon,
-  ArrowDown01Icon,
+  ArrowUpRight01Icon,
   SparklesIcon,
 } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { LinkedInConnect } from "@/components/integrations/linkedin-connect";
 import { cn } from "@/lib/utils";
 import type { Integration, IntegrationIcon, IntegrationStatus } from "@/src/integrations.ts";
 
@@ -44,16 +44,10 @@ const STATUS_META: Record<IntegrationStatus, { label: string; className: string;
 };
 
 export function IntegrationCard({ integration }: { integration: Integration }) {
-  const [open, setOpen] = useState(false);
   const status = STATUS_META[integration.status];
-  const hasSteps = Boolean(integration.steps?.length);
-  const buttonLabel = integration.cta ?? (integration.status === "available" ? "Conectar" : "Ver cómo");
 
   return (
-    <Card
-      size="sm"
-      className={cn("gap-3", integration.featured && "ring-2 ring-primary/25")}
-    >
+    <Card size="sm" className={cn("gap-3", integration.featured && "ring-2 ring-primary/25")}>
       <div className="flex items-start justify-between gap-3 px-(--card-spacing)">
         <div className="flex min-w-0 items-start gap-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-foreground">
@@ -72,21 +66,23 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
             <p className="truncate text-xs text-muted-foreground">{integration.category}</p>
           </div>
         </div>
-        <Badge variant="outline" className={cn("shrink-0 gap-1.5 font-normal", status.className)}>
-          <span className={cn("size-1.5 rounded-full", status.dot)} aria-hidden />
-          {status.label}
-        </Badge>
+        {!integration.action && (
+          <Badge variant="outline" className={cn("shrink-0 gap-1.5 font-normal", status.className)}>
+            <span className={cn("size-1.5 rounded-full", status.dot)} aria-hidden />
+            {status.label}
+          </Badge>
+        )}
       </div>
 
       <p className="px-(--card-spacing) text-sm text-muted-foreground">{integration.blurb}</p>
 
-      <div className="flex items-center justify-between gap-2 px-(--card-spacing)">
+      <div className="flex min-h-8 items-center justify-between gap-2 px-(--card-spacing)">
         {integration.status === "connected" && integration.detail ? (
           <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
             <HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} strokeWidth={2} aria-hidden />
             {integration.detail}
           </span>
-        ) : integration.status === "soon" && !hasSteps ? (
+        ) : integration.status === "soon" ? (
           <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
             <HugeiconsIcon icon={Clock01Icon} size={14} strokeWidth={2} aria-hidden />
             En el roadmap
@@ -95,35 +91,19 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
           <span />
         )}
 
-        {hasSteps && (
+        {integration.action === "linkedin" && <LinkedInConnect />}
+        {integration.action === "claude" && (
           <Button
-            variant={integration.status === "available" ? "default" : "outline"}
             size="sm"
-            onClick={() => setOpen((o) => !o)}
+            onClick={() =>
+              window.open(integration.href ?? "https://claude.ai/settings/connectors", "_blank", "noopener")
+            }
           >
-            {buttonLabel}
-            <HugeiconsIcon
-              icon={ArrowDown01Icon}
-              size={14}
-              className={cn("transition-transform", open && "rotate-180")}
-              aria-hidden
-            />
+            {integration.cta ?? "Conectar"}
+            <HugeiconsIcon icon={ArrowUpRight01Icon} size={14} strokeWidth={2} aria-hidden />
           </Button>
         )}
       </div>
-
-      {open && hasSteps && (
-        <ol className="mx-(--card-spacing) space-y-1.5 rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
-          {integration.steps!.map((step, i) => (
-            <li key={i} className="flex gap-2.5">
-              <span className="grid size-5 shrink-0 place-items-center rounded-full bg-background text-xs font-medium text-foreground tabular-nums">
-                {i + 1}
-              </span>
-              <span className="pt-0.5">{step}</span>
-            </li>
-          ))}
-        </ol>
-      )}
     </Card>
   );
 }
