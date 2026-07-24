@@ -65,6 +65,7 @@ export function Sidebar({
 
   const isActive = (item: NavItem) => {
     if (item.href === "/") return pathname === "/";
+    if (item.href.startsWith("/integrations")) return pathname.startsWith("/integrations");
     if (item.href.startsWith("/settings")) return pathname.startsWith("/settings");
     if (item.href.startsWith("/review")) return pathname === "/review" && item.href.endsWith(tab);
     return false;
