@@ -28,8 +28,8 @@ export interface Integration {
   detail?: string;
   /** A real one-click connect action, rendered as a button. */
   action?: IntegrationAction;
-  /** External destination for open-in-place actions. */
-  href?: string;
+  /** Ready-to-paste Claude Desktop config for the MCP action. */
+  mcpConfig?: string;
   /** Highlighted as a recommended next step. */
   featured?: boolean;
   /** Action label. */
@@ -123,11 +123,18 @@ export function getIntegrations(): Integration[] {
       icon: "ai",
       status: "available",
       action: "claude",
-      href: "https://claude.ai/settings/connectors",
       featured: true,
-      cta: "Conectar con Claude",
       blurb:
-        "Sumá job-radar a tu Claude (Desktop, web o Code) y manejá el pipeline desde tu propia cuenta, sin API keys.",
+        "Sumá job-radar a tu Claude Desktop como conector MCP: buscá vacantes, revisá y aprobá desde tu propio Claude, sin API keys. Copiá la config, pegala en Claude Desktop y reiniciá.",
+      mcpConfig: JSON.stringify(
+        {
+          mcpServers: {
+            "job-radar": { command: "bun", args: ["run", join(process.cwd(), "scripts", "mcp.ts")] },
+          },
+        },
+        null,
+        2,
+      ),
     },
   ];
 }

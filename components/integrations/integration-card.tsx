@@ -8,13 +8,12 @@ import {
   CpuIcon,
   CheckmarkCircle02Icon,
   Clock01Icon,
-  ArrowUpRight01Icon,
   SparklesIcon,
 } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LinkedInConnect } from "@/components/integrations/linkedin-connect";
+import { ClaudeConnect } from "@/components/integrations/claude-connect";
 import { cn } from "@/lib/utils";
 import type { Integration, IntegrationIcon, IntegrationStatus } from "@/src/integrations.ts";
 
@@ -92,17 +91,7 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
         )}
 
         {integration.action === "linkedin" && <LinkedInConnect />}
-        {integration.action === "claude" && (
-          <Button
-            size="sm"
-            onClick={() =>
-              window.open(integration.href ?? "https://claude.ai/settings/connectors", "_blank", "noopener")
-            }
-          >
-            {integration.cta ?? "Conectar"}
-            <HugeiconsIcon icon={ArrowUpRight01Icon} size={14} strokeWidth={2} aria-hidden />
-          </Button>
-        )}
+        {integration.action === "claude" && <ClaudeConnect config={integration.mcpConfig ?? ""} />}
       </div>
     </Card>
   );
