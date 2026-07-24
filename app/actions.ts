@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { discoverContactsForCompany } from "@/src/contacts.ts";
 import { findById, log, upsert } from "@/src/store.ts";
 
 async function requireItem(id: string) {
@@ -17,6 +19,22 @@ export async function approveItem(id: string, formData?: FormData) {
   }
   item.status = "approved";
   await upsert(log(item, "approved via dashboard"));
+
+  // Approving an application warms it: kick off contact discovery for that
+  // company. after() runs post-response, so approval stays instant and a
+  // search failure never surfaces to the user.
+  if (item.kind === "application" && item.job) {
+    const company = item.job.company;
+    const why = `Aprobaste tu aplicación a ${item.job.title} en ${company}`;
+    after(async () => {
+      try {
+        await discoverContactsForCompany(company, why);
+      } catch (e) {
+        console.error(`discoverContactsForCompany(${company}):`, (e as Error).message);
+      }
+    });
+  }
+
   revalidatePath("/", "layout");
 }
 

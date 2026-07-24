@@ -5,6 +5,7 @@ import { fetchGreenhouseJobs } from "./adapters/greenhouse.ts";
 import { fetchLeverJobs } from "./adapters/lever.ts";
 import { fetchAshbyJobs } from "./adapters/ashby.ts";
 import { submitApplication, type Applicant } from "./apply/index.ts";
+import { discoverContactsForCompany } from "./contacts.ts";
 import { rankJob } from "./rank.ts";
 import { loadSettings, saveSettings } from "./settings.ts";
 import { listUserIds } from "./users.ts";
@@ -144,6 +145,14 @@ export async function runEngine(
         log(item, `auto-applied${result.dryRun ? " (dry-run)" : ""}: ${result.detail}`);
         out.autoApplied++;
         say(`  [${ranking.score}] ${job.title} @ ${job.company}: AUTO-APPLY${result.dryRun ? " (dry-run)" : ""}`);
+        // Warm the application: find contacts at this company. Best-effort, so
+        // a search failure never aborts the run.
+        try {
+          const c = await discoverContactsForCompany(job.company, `Auto-aplicaste a ${job.title} en ${job.company}`);
+          if (c.created) say(`    + ${c.created} contactos en ${job.company} -> cola de conexiones`);
+        } catch (e) {
+          say(`    ~ contactos ${job.company}: ${(e as Error).message}`);
+        }
       } else {
         item.status = "pending_review";
         log(item, `auto-apply fallo (${result.detail}) -> pending_review`);
