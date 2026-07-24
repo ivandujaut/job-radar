@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useReverification } from "@clerk/nextjs";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,18 @@ import { Button } from "@/components/ui/button";
  *
  * Requires LinkedIn (OIDC) enabled as a social connection in the Clerk
  * dashboard; if it is not, the connect call fails and we show a soft message.
+ *
+ * Linking an external account is a protected action, so Clerk may require
+ * session reverification (step-up) first, returning `session_reverification_required`.
+ * We wrap the call with `useReverification`, which detects that, shows Clerk's
+ * reverification UI, and retries the call once the user verifies.
  */
 export function LinkedInConnect() {
   const { user, isLoaded } = useUser();
+  const createExternalAccount = useReverification(
+    (params: Parameters<NonNullable<typeof user>["createExternalAccount"]>[0]) =>
+      user!.createExternalAccount(params),
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
 
@@ -37,7 +46,7 @@ export function LinkedInConnect() {
     setBusy(true);
     setError(false);
     try {
-      const account = await user.createExternalAccount({
+      const account = await createExternalAccount({
         strategy: "oauth_linkedin_oidc",
         redirectUrl: window.location.href,
       });
@@ -49,6 +58,7 @@ export function LinkedInConnect() {
       setError(true);
       setBusy(false);
     } catch {
+      // Includes the user cancelling the reverification step.
       setError(true);
       setBusy(false);
     }
