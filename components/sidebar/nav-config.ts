@@ -4,6 +4,7 @@ import {
   JobSearchIcon,
   UserGroupIcon,
   Time04Icon,
+  PlugSocketIcon,
   Settings01Icon,
 } from "@hugeicons/core-free-icons";
 
@@ -28,6 +29,7 @@ export const MENU: NavItem[] = [
   { key: "applications", label: "Aplicaciones", href: "/review?tab=applications", icon: JobSearchIcon },
   { key: "connections", label: "Conexiones", href: "/review?tab=connections", icon: UserGroupIcon },
   { key: "history", label: "Historial", href: "/review?tab=history", icon: Time04Icon },
+  { key: "integrations", label: "Integraciones", href: "/integrations", icon: PlugSocketIcon },
 ];
 
 export const OPTIONS: NavItem[] = [
