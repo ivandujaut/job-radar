@@ -7,11 +7,10 @@ import {
   Building06Icon,
   Globe02Icon,
   CpuIcon,
-  Database01Icon,
-  UserCircleIcon,
   CheckmarkCircle02Icon,
   Clock01Icon,
   ArrowDown01Icon,
+  SparklesIcon,
 } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,14 +23,9 @@ const ICONS: Record<IntegrationIcon, React.ComponentProps<typeof HugeiconsIcon>[
   board: Building06Icon,
   search: Globe02Icon,
   ai: CpuIcon,
-  db: Database01Icon,
-  auth: UserCircleIcon,
 };
 
-const STATUS_META: Record<
-  IntegrationStatus,
-  { label: string; className: string; dot: string }
-> = {
+const STATUS_META: Record<IntegrationStatus, { label: string; className: string; dot: string }> = {
   connected: {
     label: "Conectado",
     className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
@@ -43,7 +37,7 @@ const STATUS_META: Record<
     dot: "bg-amber-500",
   },
   soon: {
-    label: "Próximamente",
+    label: "En camino",
     className: "border-border bg-muted text-muted-foreground",
     dot: "bg-zinc-400",
   },
@@ -53,16 +47,28 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
   const [open, setOpen] = useState(false);
   const status = STATUS_META[integration.status];
   const hasSteps = Boolean(integration.steps?.length);
+  const buttonLabel = integration.cta ?? (integration.status === "available" ? "Conectar" : "Ver cómo");
 
   return (
-    <Card size="sm" className="gap-3">
+    <Card
+      size="sm"
+      className={cn("gap-3", integration.featured && "ring-2 ring-primary/25")}
+    >
       <div className="flex items-start justify-between gap-3 px-(--card-spacing)">
         <div className="flex min-w-0 items-start gap-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-foreground">
             <HugeiconsIcon icon={ICONS[integration.icon]} size={18} strokeWidth={1.8} aria-hidden />
           </span>
           <div className="min-w-0">
-            <p className="truncate font-medium">{integration.name}</p>
+            <p className="flex items-center gap-2 font-medium">
+              <span className="truncate">{integration.name}</span>
+              {integration.featured && (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                  <HugeiconsIcon icon={SparklesIcon} size={11} strokeWidth={2} aria-hidden />
+                  Recomendado
+                </span>
+              )}
+            </p>
             <p className="truncate text-xs text-muted-foreground">{integration.category}</p>
           </div>
         </div>
@@ -72,7 +78,7 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
         </Badge>
       </div>
 
-      <p className="px-(--card-spacing) text-sm text-muted-foreground">{integration.description}</p>
+      <p className="px-(--card-spacing) text-sm text-muted-foreground">{integration.blurb}</p>
 
       <div className="flex items-center justify-between gap-2 px-(--card-spacing)">
         {integration.status === "connected" && integration.detail ? (
@@ -95,7 +101,7 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
             size="sm"
             onClick={() => setOpen((o) => !o)}
           >
-            {integration.status === "available" ? "Conectar" : "Ver cómo"}
+            {buttonLabel}
             <HugeiconsIcon
               icon={ArrowDown01Icon}
               size={14}
