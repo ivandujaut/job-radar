@@ -35,6 +35,13 @@ export interface Integration {
   featured?: boolean;
   /** Action label. */
   cta?: string;
+  /**
+   * A search source the user can pause/resume. When true the card shows a
+   * switch; `enabled` reflects whether the engine currently uses it.
+   */
+  toggleable?: boolean;
+  /** For toggleable sources: false when the user has paused it. */
+  enabled?: boolean;
 }
 
 export const INTEGRATION_CATEGORIES = [
@@ -74,26 +81,31 @@ function atsBoardCount(provider: string): number {
   }
 }
 
-function atsSource(name: string, provider: string): Integration {
+function atsSource(name: string, provider: string, disabled: Set<string>): Integration {
   const n = atsBoardCount(provider);
+  const connected = n > 0;
   return {
     key: provider,
     name,
     category: "Fuentes de vacantes",
     icon: "board",
     blurb: `Traé vacantes de ${name} y auto-aplicá a las que superan tu umbral de match.`,
-    status: n > 0 ? "connected" : "available",
-    detail: n > 0 ? `${n} ${n === 1 ? "tablero configurado" : "tableros configurados"}` : undefined,
+    status: connected ? "connected" : "available",
+    detail: connected ? `${n} ${n === 1 ? "tablero configurado" : "tableros configurados"}` : undefined,
+    // Only a configured source is worth pausing: an empty board searches nothing.
+    toggleable: connected,
+    enabled: connected ? !disabled.has(provider) : undefined,
   };
 }
 
-export function getIntegrations(): Integration[] {
+export function getIntegrations(disabledSources: string[] = []): Integration[] {
+  const disabled = new Set(disabledSources);
   const contactsConnected = has("SERPER_API_KEY") || has("TAVILY_API_KEY");
 
   return [
-    atsSource("Greenhouse", "greenhouse"),
-    atsSource("Lever", "lever"),
-    atsSource("Ashby", "ashby"),
+    atsSource("Greenhouse", "greenhouse", disabled),
+    atsSource("Lever", "lever", disabled),
+    atsSource("Ashby", "ashby", disabled),
     {
       key: "workable",
       name: "Workable",
@@ -130,6 +142,8 @@ export function getIntegrations(): Integration[] {
       status: contactsConnected ? "connected" : "available",
       blurb: "El agente encuentra managers y hiring en las empresas donde aplicás para entibiar tu perfil.",
       detail: contactsConnected ? "Proveedor de búsqueda activo" : undefined,
+      toggleable: contactsConnected,
+      enabled: contactsConnected ? !disabled.has("contacts") : undefined,
     },
 
     {

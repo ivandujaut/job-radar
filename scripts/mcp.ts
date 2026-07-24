@@ -120,7 +120,10 @@ server.registerTool(
     item.status = "approved";
     await upsert(log(item, "approved via MCP"));
     let extra = "";
-    if (item.job) {
+    const uid = await resolveUserId();
+    const settings = uid ? await loadSettings(uid) : null;
+    const contactsEnabled = !settings?.disabledSources.includes("contacts");
+    if (item.job && contactsEnabled) {
       try {
         const r = await discoverContactsForCompany(item.job.company, `Aprobaste ${item.job.title} en ${item.job.company}`);
         if (r.created) extra = ` Descubrí ${r.created} contactos en ${item.job.company}.`;

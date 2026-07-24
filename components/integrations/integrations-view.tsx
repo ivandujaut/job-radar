@@ -23,6 +23,7 @@ export function IntegrationsView({
   system: SystemStatus;
 }) {
   const count = (s: Integration["status"]) => integrations.filter((i) => i.status === s).length;
+  const paused = integrations.filter((i) => i.toggleable && i.enabled === false).length;
   const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
   return (
@@ -30,6 +31,7 @@ export function IntegrationsView({
       <p className="text-sm text-muted-foreground">
         {plural(count("connected"), "conectada", "conectadas")} ·{" "}
         {plural(count("available"), "disponible", "disponibles")} · {count("soon")} en el roadmap
+        {paused > 0 && ` · ${paused} en pausa`}
       </p>
 
       {INTEGRATION_CATEGORIES.map((category) => {

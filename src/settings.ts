@@ -52,6 +52,12 @@ export interface UserSettings {
   profile: Profile;
   autonomy: AutonomySettings;
   onboarding: OnboardingState;
+  /**
+   * Search sources the user has paused, by integration key (e.g. "greenhouse",
+   * "lever", "ashby", "contacts"). Empty means every configured source is
+   * active. A paused source stays connected but is skipped by the engine.
+   */
+  disabledSources: string[];
   /** Result of the most recent scheduler pass, shown on the dashboard. */
   lastRun?: EngineRunSummary;
   updatedAt: string;
@@ -73,6 +79,7 @@ export const DEFAULT_SETTINGS = (userId: string): UserSettings => ({
     linkedinConnected: false,
     autonomySet: false,
   },
+  disabledSources: [],
   updatedAt: new Date().toISOString(),
 });
 
@@ -81,7 +88,13 @@ const fileFor = (userId: string) => join(process.cwd(), "data", "users", `${user
 /** Backfill fields added after a user record was first written. */
 function normalize(s: UserSettings): UserSettings {
   const d = DEFAULT_SETTINGS(s.userId);
-  return { ...d, ...s, profile: { ...d.profile, ...s.profile }, autonomy: { ...d.autonomy, ...s.autonomy } };
+  return {
+    ...d,
+    ...s,
+    profile: { ...d.profile, ...s.profile },
+    autonomy: { ...d.autonomy, ...s.autonomy },
+    disabledSources: Array.isArray(s.disabledSources) ? s.disabledSources : d.disabledSources,
+  };
 }
 
 function fileLoadSettings(userId: string): UserSettings {
