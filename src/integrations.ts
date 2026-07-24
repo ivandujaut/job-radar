@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { parse } from "yaml";
 
@@ -44,6 +45,21 @@ export const INTEGRATION_CATEGORIES = [
 
 function has(key: string): boolean {
   return Boolean(process.env[key]);
+}
+
+/**
+ * Absolute path to the `bun` binary. Claude Desktop launches MCP servers with a
+ * minimal PATH, so a bare "bun" command usually fails to resolve. We probe the
+ * usual install locations and fall back to "bun" only if none exist.
+ */
+function resolveBunPath(): string {
+  const candidates = [
+    process.env.BUN_INSTALL ? join(process.env.BUN_INSTALL, "bin", "bun") : null,
+    join(homedir(), ".bun", "bin", "bun"),
+    "/opt/homebrew/bin/bun",
+    "/usr/local/bin/bun",
+  ].filter((p): p is string => Boolean(p));
+  return candidates.find((p) => existsSync(p)) ?? "bun";
 }
 
 function atsBoardCount(provider: string): number {
@@ -129,7 +145,10 @@ export function getIntegrations(): Integration[] {
       mcpConfig: JSON.stringify(
         {
           mcpServers: {
-            "job-radar": { command: "bun", args: ["run", join(process.cwd(), "scripts", "mcp.ts")] },
+            "job-radar": {
+              command: resolveBunPath(),
+              args: ["run", join(process.cwd(), "scripts", "mcp.ts")],
+            },
           },
         },
         null,
