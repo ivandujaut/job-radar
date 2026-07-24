@@ -10,8 +10,10 @@
  * Data is generated from a fixed seed, so re-running yields the same set.
  */
 import { existsSync, copyFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { clearQueue, saveQueue } from "../src/store.ts";
+import { demoContactsForCompany, demoConnectionNote } from "../src/contacts.ts";
 import type { JobSource, QueueItem, QueueStatus } from "../src/types.ts";
 
 // --- deterministic PRNG (mulberry32) ---
@@ -82,12 +84,6 @@ const WARNINGS = [
   "Posible requisito de portugués.",
 ];
 
-const PEOPLE = [
-  { name: "Lucía Fernández", role: "Head of Product", company: "Cashea" },
-  { name: "Martín Gómez", role: "Engineering Manager", company: "Belo" },
-  { name: "Sofía Ramírez", role: "Talent Partner", company: "NotCo" },
-];
-
 const now = Date.now();
 const DAY = 86_400_000;
 
@@ -156,23 +152,27 @@ function makeApplication(i: number, status: QueueStatus): QueueItem {
   };
 }
 
-function makeConnection(i: number, status: QueueStatus, person: (typeof PEOPLE)[number]): QueueItem {
-  const daysAgo = between(1, 20);
-  const at = iso(daysAgo, between(9, 18));
-  const id = `seed-conn-${i}`;
-  const history: QueueItem["history"] = [{ at, event: "discovered" }];
-  if (status !== "pending_review") history.push({ at: iso(Math.max(0, daysAgo - 2), 12), event: status });
-  return {
-    id,
-    kind: "connection",
-    status,
-    person: { ...person, url: "https://www.linkedin.com/in/demo" },
-    draft:
-      status === "pending_review"
-        ? `Hola ${person.name.split(" ")[0]}, vi que lideran producto en ${person.company}. Vengo del lado técnico y estoy pivoteando a Product; me encantaría charlar.`
-        : "Nota enviada.",
-    history,
-  };
+/**
+ * Contacts discovered because we applied to a company. Mirrors the real
+ * discoverContactsForCompany() output so the seeded state shows the link
+ * between an approved/sent application and the contacts it warms.
+ */
+function contactsForCompany(company: string, perCompany: number): QueueItem[] {
+  return demoContactsForCompany(company)
+    .slice(0, perCompany)
+    .map((p) => {
+      const id = createHash("sha1").update(p.url).digest("hex").slice(0, 10);
+      const daysAgo = between(1, 18);
+      const at = iso(daysAgo, between(9, 18));
+      return {
+        id,
+        kind: "connection",
+        status: "pending_review",
+        person: { name: p.name, role: p.role, company: p.company, url: p.url },
+        draft: demoConnectionNote(p),
+        history: [{ at, event: `contacto en ${company} tras aplicar (${p.relevance})` }],
+      };
+    });
 }
 
 // Status mix, tuned so the review queue and every widget have content.
@@ -186,9 +186,24 @@ const MIX: QueueStatus[] = [
 ];
 
 const items: QueueItem[] = MIX.map((status, i) => makeApplication(i, status as QueueStatus));
-items.push(makeConnection(0, "pending_review", PEOPLE[0]));
-items.push(makeConnection(1, "pending_review", PEOPLE[1]));
-items.push(makeConnection(2, "approved", PEOPLE[2]));
+
+// Warm contacts for the companies we applied to (approved or sent), deduped by
+// company, so the connection queue reflects the "apply -> find contacts" flow.
+const warmCompanies = [
+  ...new Set(
+    items
+      .filter((i) => i.kind === "application" && ["approved", "sent"].includes(i.status) && i.job)
+      .map((i) => i.job!.company),
+  ),
+].slice(0, 3);
+const seen = new Set(items.map((i) => i.id));
+for (const company of warmCompanies) {
+  for (const conn of contactsForCompany(company, 2)) {
+    if (seen.has(conn.id)) continue;
+    seen.add(conn.id);
+    items.push(conn);
+  }
+}
 
 async function main() {
   const force = process.argv.includes("--force");
